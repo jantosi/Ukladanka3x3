@@ -9,7 +9,7 @@ using namespace std;
 
 #define N 3
 #define GLEBOKOSC_REKURSJI 6
-//
+//test
 
 class Stan{
 public:
