@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1363770102 source:c:\users\kuba\documents\semestr 6\sise\ukladanka3x3\main.cpp
+	<iostream>
+	<ctime>
+	<cmath>
+	<vector>
+	<algorithm>
+	<queue>
+
