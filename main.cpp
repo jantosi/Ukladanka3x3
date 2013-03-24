@@ -298,7 +298,6 @@ Vertex* Vertex::operatorP(int wiersz, int kolumna)
 
 Vertex* Vertex::executeOperator(int index, int wiersz, int kolumna)
 {
-    //cout << "V::eO " << index << " " << wiersz << " " << kolumna << endl;
     return (this->*wskOperatory.at(index))(wiersz,kolumna);
 }
 
