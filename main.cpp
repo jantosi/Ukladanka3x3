@@ -9,6 +9,8 @@ using namespace std;
 
 #define N 3
 #define GLEBOKOSC_REKURSJI 6
+//zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
+#define PUSTE_POLE_PLANSZA 0
 
 class Stan{
 public:
@@ -36,7 +38,7 @@ public:
             dostepneKafelki.push_back(i);
         }
         //zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
-        dostepneKafelki.push_back(0);
+        dostepneKafelki.push_back(PUSTE_POLE_PLANSZA);
 
         if(random) random_shuffle(dostepneKafelki.begin(),dostepneKafelki.end());
 
@@ -44,7 +46,7 @@ public:
             for(int j=0; j<N; j++)
             {
                 plansza[i][j] = dostepneKafelki.at(j+i*N);
-                if(dostepneKafelki.at(j+i*N) == 0)
+                if(dostepneKafelki.at(j+i*N) == PUSTE_POLE_PLANSZA)
                 {
                     pozycjaDziuryKolumna = j;
                     pozycjaDziuryWiersz = i;
@@ -55,7 +57,7 @@ public:
     bool weryfikujStan()
     {
         bool isOk = true;
-        if(plansza[N-1][N-1]==0)
+        if(plansza[N-1][N-1]==PUSTE_POLE_PLANSZA)
         {
             for(int i=0; i<N; i++)
             {
@@ -168,7 +170,7 @@ Vertex* Vertex::operatorD(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz+1][kolumna];
 
-    vertex->stan.plansza[wiersz+1][kolumna] = -1;
+    vertex->stan.plansza[wiersz+1][kolumna] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryWiersz++;
 
@@ -184,7 +186,7 @@ Vertex* Vertex::operatorG(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz-1][kolumna];
 
-    vertex->stan.plansza[wiersz-1][kolumna] = -1;
+    vertex->stan.plansza[wiersz-1][kolumna] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryWiersz--;
 
@@ -200,7 +202,7 @@ Vertex* Vertex::operatorL(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz][kolumna-1];
 
-    vertex->stan.plansza[wiersz][kolumna-1] = -1;
+    vertex->stan.plansza[wiersz][kolumna-1] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryKolumna--;
 
@@ -216,7 +218,7 @@ Vertex* Vertex::operatorP(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz][kolumna+1];
 
-    vertex->stan.plansza[wiersz][kolumna+1] = -1;
+    vertex->stan.plansza[wiersz][kolumna+1] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryKolumna++;
 
