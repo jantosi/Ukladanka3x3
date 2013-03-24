@@ -9,6 +9,7 @@ using namespace std;
 
 #define N 3
 #define GLEBOKOSC_REKURSJI 6
+//test
 
 class Stan{
 public:
@@ -27,7 +28,7 @@ public:
         }
     }
 
-    void tworzPlansze(bool random = true)
+    void randomPlansza(bool notrandom=false)
     {
         vector<int> dostepneKafelki;
 
@@ -35,16 +36,15 @@ public:
         {
             dostepneKafelki.push_back(i);
         }
-        //zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
-        dostepneKafelki.push_back(0);
+        dostepneKafelki.push_back(-1);
 
-        if(random) random_shuffle(dostepneKafelki.begin(),dostepneKafelki.end());
+        if(!notrandom) random_shuffle(dostepneKafelki.begin(),dostepneKafelki.end());
 
         for(int i=0; i<N; i++)
             for(int j=0; j<N; j++)
             {
                 plansza[i][j] = dostepneKafelki.at(j+i*N);
-                if(dostepneKafelki.at(j+i*N) == 0)
+                if(dostepneKafelki.at(j+i*N)==-1)
                 {
                     pozycjaDziuryKolumna = j;
                     pozycjaDziuryWiersz = i;
@@ -55,7 +55,7 @@ public:
     bool weryfikujStan()
     {
         bool isOk = true;
-        if(plansza[N-1][N-1]==0)
+        if(plansza[N-1][N-1]==-1)
         {
             for(int i=0; i<N; i++)
             {
@@ -66,19 +66,13 @@ public:
                 }
             }
         }
-        else isOk = false;
+        else isOk=false;
 
         return isOk;
     }
 
     bool operator==(const Stan &stan2) {
-        //przyjmujemy, ¿e plansze, które generujemy maja zawsze taki sam rozmiar
-    	for (int i = 0; i < N; i++)
-        	for (int j = 0; j < N; j++)
-        		if (this->plansza[i][j] != stan2.plansza[i][j])
-        			return false;
-
-    	return true;
+        return (this->plansza == stan2.plansza);
     }
 
     friend ostream& operator<<(ostream &wyjscie, const Stan &stan)
@@ -401,10 +395,10 @@ int main()
 {
     srand(time(NULL));
     Stan start;
-    start.tworzPlansze(true);
+    start.randomPlansza();
 
     Stan stop;
-    stop.tworzPlansze(false);
+    stop.randomPlansza(true);
 
     start.wypiszPlansze();
 
