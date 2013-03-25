@@ -25,7 +25,7 @@ public:
     int pozycjaDziuryWiersz, pozycjaDziuryKolumna;
 
     Stan() {
-
+    	this->plansza = NULL;
     }
 	Stan(const Stan &stan2) {
 
@@ -43,30 +43,29 @@ public:
 		}
 	}
 
-//	Stan& operator=(const Stan &stan2) {
-//		if (this != &stan2) {
-//			this->liczbaKolumn = stan2.liczbaKolumn;
-//			this->liczbaWierszy = stan2.liczbaWierszy;
-//			this->pozycjaDziuryKolumna = stan2.pozycjaDziuryKolumna;
-//			this->pozycjaDziuryWiersz = stan2.pozycjaDziuryWiersz;
-//
-//			cout << this->plansza[2][2]<<endl;
-//
-//			for (int i = 0; i < this->liczbaWierszy; i++) {
-//				delete[] plansza[i];
-//			}
-//			delete[] this->plansza;
-//
-//			inicjalizujPlansze();
-//
-//			for (int i = 0; i < this->liczbaWierszy; i++) {
-//				for (int j = 0; j < this->liczbaKolumn; j++) {
-//					this->plansza[i][j] = stan2.plansza[i][j];
-//				}
-//			}
-//		}
-//		return *this;
-//	}
+	Stan& operator=(const Stan &stan2) {
+		if (this != &stan2) {
+			this->liczbaKolumn = stan2.liczbaKolumn;
+			this->liczbaWierszy = stan2.liczbaWierszy;
+			this->pozycjaDziuryKolumna = stan2.pozycjaDziuryKolumna;
+			this->pozycjaDziuryWiersz = stan2.pozycjaDziuryWiersz;
+
+			if (this->plansza != NULL) {
+				for (int i = 0; i < this->liczbaWierszy; i++) {
+					delete[] plansza[i];
+				}
+				delete[] this->plansza;
+			}
+			inicjalizujPlansze();
+
+			for (int i = 0; i < this->liczbaWierszy; i++) {
+				for (int j = 0; j < this->liczbaKolumn; j++) {
+					this->plansza[i][j] = stan2.plansza[i][j];
+				}
+			}
+		}
+		return *this;
+	}
 
     void wczytajPlansze() {
     	cin >> this->liczbaWierszy >> this->liczbaKolumn;
@@ -298,6 +297,7 @@ Vertex* Vertex::operatorP(int wiersz, int kolumna)
 
 Vertex* Vertex::executeOperator(int index, int wiersz, int kolumna)
 {
+    //cout << "V::eO " << index << " " << wiersz << " " << kolumna << endl;
     return (this->*wskOperatory.at(index))(wiersz,kolumna);
 }
 
@@ -452,22 +452,17 @@ void tworzGraf(Vertex* vertexStart, Graf* graf, int glebokoscRekursji=0) {
 
     for(size_t i = 0; i<vertexStart->wskOperatory.size(); i++)
     {
-        //cout << "tG:i" << i << endl;
         vertexResult = vertexStart->executeOperator(i, vertexStart->stan.pozycjaDziuryWiersz, vertexStart->stan.pozycjaDziuryKolumna);
         if(vertexResult!=NULL)
         {
-            //cout << "not null\n";
             int pozycja = graf->addVertexWithCheck(vertexResult);
             if (pozycja != -1) {
-                //cout << "pozycja="<<pozycja<<endl;
                 graf->makeEdge(vertexStart, graf->getVertex(pozycja), 0);
                 tworzGraf(vertexResult, graf, ++glebokoscRekursji);
             }
         }
     }
 }
-
-//
 
 int main()
 {
@@ -491,17 +486,17 @@ int main()
 
     tworzGraf(vertexStart, graf);
     graf->printout();
-    Vertex* vertexStop = new Vertex(stop);
-
-    int pathlength=0; vector<int> path;
-    graf->DFSFindVertex(vertexStart,vertexStop,pathlength,path);
-
-    cout << pathlength;
-    for(size_t i =0; i<path.size(); i++)
-    {
-        Vertex* tmp = graf->getVertex(path.at(i));
-        tmp->printout();
-    }
+//    Vertex* vertexStop = new Vertex(stop);
+//
+//    int pathlength=0; vector<int> path;
+//    graf->DFSFindVertex(vertexStart,vertexStop,pathlength,path);
+//
+//    cout << pathlength;
+//    for(size_t i =0; i<path.size(); i++)
+//    {
+//        Vertex* tmp = graf->getVertex(path.at(i));
+//        tmp->printout();
+//    }
 
     return 0;
 }
