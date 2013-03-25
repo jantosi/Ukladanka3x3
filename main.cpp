@@ -161,7 +161,8 @@ public:
             {
                 wyjscie << stan.plansza[i][j] << "\t";
             }
-            wyjscie << "\n";
+            if (i < stan.liczbaWierszy - 1)
+            	wyjscie << "\n";
         }
         return wyjscie;
     }
@@ -297,7 +298,6 @@ Vertex* Vertex::operatorP(int wiersz, int kolumna)
 
 Vertex* Vertex::executeOperator(int index, int wiersz, int kolumna)
 {
-    //cout << "V::eO " << index << " " << wiersz << " " << kolumna << endl;
     return (this->*wskOperatory.at(index))(wiersz,kolumna);
 }
 
@@ -388,7 +388,7 @@ public:
 
         if(start->stan == end->stan)
         {
-            pathlength=0;
+            pathlength = 0;
             return true;
         }
 
@@ -446,22 +446,48 @@ public:
     }
 };
 
-void tworzGraf(Vertex* vertexStart, Graf* graf, int glebokoscRekursji=0) {
-    if(glebokoscRekursji>=GLEBOKOSC_REKURSJI) return;
-    Vertex* vertexResult;
+void tworzGraf(Vertex* vertexStart, Graf* graf) {
+	Vertex* vertexResult;
 
-    for(size_t i = 0; i<vertexStart->wskOperatory.size(); i++)
-    {
-        vertexResult = vertexStart->executeOperator(i, vertexStart->stan.pozycjaDziuryWiersz, vertexStart->stan.pozycjaDziuryKolumna);
-        if(vertexResult!=NULL)
-        {
-            int pozycja = graf->addVertexWithCheck(vertexResult);
-            if (pozycja != -1) {
-                graf->makeEdge(vertexStart, graf->getVertex(pozycja), 0);
-                tworzGraf(vertexResult, graf, ++glebokoscRekursji);
-            }
-        }
-    }
+	//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
+	queue<Vertex*> verticesToProcessing;
+	verticesToProcessing.push(vertexStart);
+
+	int aktualnaGlebokosc = 1;
+	//dopoki sa wierzcholki, dla ktorych ma byc generowane przejscie, dopoty to generujemy
+	while (!verticesToProcessing.empty()) {
+		Vertex* actualVertex = verticesToProcessing.front();
+		verticesToProcessing.pop();
+
+		//dla kazdego wierzcholka generuje sie przejscia do nastepnego stanu (moga byc max 4 przejscia)
+		for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
+			vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
+			if (vertexResult) {
+				int pozycja = graf->addVertexWithCheck(vertexResult);
+				if (pozycja != -1) {
+					graf->makeEdge(actualVertex, graf->getVertex(pozycja), 0);
+
+					//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
+					if (aktualnaGlebokosc < GLEBOKOSC_REKURSJI)
+						verticesToProcessing.push(vertexResult);
+				}
+			}
+		}
+		aktualnaGlebokosc++;
+	}
+
+//    for(size_t i = 0; i<vertexStart->wskOperatory.size(); i++)
+//    {
+//        vertexResult = vertexStart->executeOperator(i, vertexStart->stan.pozycjaDziuryWiersz, vertexStart->stan.pozycjaDziuryKolumna);
+//        if(vertexResult!=NULL)
+//        {
+//            int pozycja = graf->addVertexWithCheck(vertexResult);
+//            if (pozycja != -1) {
+//                graf->makeEdge(vertexStart, graf->getVertex(pozycja), 0);
+//                tworzGraf(vertexResult, graf, ++glebokoscRekursji);
+//            }
+//        }
+//    }
 }
 
 int main()
@@ -476,27 +502,29 @@ int main()
     stop.liczbaKolumn = start.liczbaKolumn;
     stop.tworzPlansze(false);
 
-    start.wypiszPlansze();
+    //start.wypiszPlansze();
 
     Graf* graf = new Graf(true,0);
 
     Vertex* vertexStart = new Vertex(start);
     graf->addVertex(vertexStart,-1);
-    cout << graf->vertices.at(0)->stan.plansza[1][2] <<endl;
 
     tworzGraf(vertexStart, graf);
-    graf->printout();
-//    Vertex* vertexStop = new Vertex(stop);
-//
-//    int pathlength=0; vector<int> path;
-//    graf->DFSFindVertex(vertexStart,vertexStop,pathlength,path);
-//
-//    cout << pathlength;
-//    for(size_t i =0; i<path.size(); i++)
-//    {
-//        Vertex* tmp = graf->getVertex(path.at(i));
-//        tmp->printout();
-//    }
+    //graf->printout();
+    Vertex* vertexStop = new Vertex(stop);
+
+    int pathlength=0; vector<int> path;
+    path.push_back(vertexStart->ordernum);
+
+    graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
+
+    cout <<"DFS: " << endl;
+    cout << "dl. sciezki: " << pathlength <<endl;
+    for(size_t i =0; i<path.size(); i++)
+    {
+        Stan tmp = graf->getVertex(path.at(i))->stan;
+        cout << tmp << endl << endl;
+    }
 
     return 0;
 }
