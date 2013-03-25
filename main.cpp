@@ -24,8 +24,13 @@ public:
     int liczbaWierszy, liczbaKolumn;
     int pozycjaDziuryWiersz, pozycjaDziuryKolumna;
 
+    //okresla, która stronê zostala przmieszczona dziura w porownaniu do stanu poprzedniego
+    //mozliwe kierunki: LPGD
+    char kierunekPrzemieszczeniaDziury;
+
     Stan() {
     	this->plansza = NULL;
+    	this->kierunekPrzemieszczeniaDziury = NULL;
     }
 	Stan(const Stan &stan2) {
 
@@ -33,6 +38,7 @@ public:
 		this->liczbaWierszy = stan2.liczbaWierszy;
 		this->pozycjaDziuryKolumna = stan2.pozycjaDziuryKolumna;
 		this->pozycjaDziuryWiersz = stan2.pozycjaDziuryWiersz;
+		this->kierunekPrzemieszczeniaDziury = stan2.kierunekPrzemieszczeniaDziury;
 
 		inicjalizujPlansze();
 
@@ -49,6 +55,7 @@ public:
 			this->liczbaWierszy = stan2.liczbaWierszy;
 			this->pozycjaDziuryKolumna = stan2.pozycjaDziuryKolumna;
 			this->pozycjaDziuryWiersz = stan2.pozycjaDziuryWiersz;
+			this->kierunekPrzemieszczeniaDziury = stan2.kierunekPrzemieszczeniaDziury;
 
 			if (this->plansza != NULL) {
 				for (int i = 0; i < this->liczbaWierszy; i++) {
@@ -124,24 +131,24 @@ public:
             }
     }
 
-    bool weryfikujStan()
-    {
-        bool isOk = true;
-        if(plansza[this->liczbaWierszy-1][this->liczbaKolumn-1]==PUSTE_POLE_PLANSZA)
-        {
-            for(int i=0; i<this->liczbaWierszy; i++)
-            {
-                for(int j=0; j<this->liczbaKolumn; j++)
-                {
-                    if(i==this->liczbaWierszy-1 && j==this->liczbaKolumn-1) continue;
-                    if(plansza[i][j]!=(j+i*this->liczbaWierszy+1)) return false;
-                }
-            }
-        }
-        else isOk = false;
-
-        return isOk;
-    }
+//    bool weryfikujStan()
+//    {
+//        bool isOk = true;
+//        if(plansza[this->liczbaWierszy-1][this->liczbaKolumn-1]==PUSTE_POLE_PLANSZA)
+//        {
+//            for(int i=0; i<this->liczbaWierszy; i++)
+//            {
+//                for(int j=0; j<this->liczbaKolumn; j++)
+//                {
+//                    if(i==this->liczbaWierszy-1 && j==this->liczbaKolumn-1) continue;
+//                    if(plansza[i][j]!=(j+i*this->liczbaWierszy+1)) return false;
+//                }
+//            }
+//        }
+//        else isOk = false;
+//
+//        return isOk;
+//    }
 
     bool operator==(const Stan &stan2) {
         //przyjmujemy, ¿e plansze, które generujemy maja zawsze taki sam rozmiar
@@ -244,6 +251,7 @@ Vertex* Vertex::operatorD(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz+1][kolumna] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryWiersz++;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'D';
 
     return vertex;
 }
@@ -260,6 +268,7 @@ Vertex* Vertex::operatorG(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz-1][kolumna] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryWiersz--;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'G';
 
     return vertex;
 }
@@ -276,6 +285,7 @@ Vertex* Vertex::operatorL(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna-1] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryKolumna--;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'L';
 
     return vertex;
 }
@@ -292,6 +302,7 @@ Vertex* Vertex::operatorP(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna+1] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryKolumna++;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'P';
 
     return vertex;
 }
@@ -407,36 +418,42 @@ public:
             }
         }
     }
-    bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path) {
-        queue <Vertex* > do_odwiedzenia;
-        do_odwiedzenia.push(start);
+	bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path, int *shortestPath) {
+		queue<Vertex*> do_odwiedzenia;
+		do_odwiedzenia.push(start);
 
-        path.push_back(start->ordernum);
-        bool koniec = false;
-        pathlength = 0;
+		//path.push_back(start->ordernum);
+		bool koniec = false;
+		pathlength = 0;
 
-        while( !do_odwiedzenia.empty() && !koniec ){
-            Vertex* aktualny;
-            aktualny = do_odwiedzenia.front();
-            do_odwiedzenia.pop();
-            if (!aktualny->visited){
-                aktualny->visited = true;
-                sort(aktualny->edges.begin(), aktualny->edges.end());
+		while (!do_odwiedzenia.empty() && !koniec) {
+			Vertex* aktualny;
+			aktualny = do_odwiedzenia.front();
+			do_odwiedzenia.pop();
 
-                for (size_t i = 0; i < aktualny->edges.size() ; i++){
-                    if( aktualny->edges.at(i)->other_end->stan == end->stan ){
-                        koniec = true;
-                    }
-                    do_odwiedzenia.push(aktualny->edges.at(i)->other_end);
+			sort(aktualny->edges.begin(), aktualny->edges.end());
 
-                    path.push_back(aktualny->edges.at(i)->other_end->ordernum);
-                    pathlength++;
-                }
-            }
-        }
+			path.push_back(aktualny->ordernum);
 
-        return koniec;
-    }
+			for (size_t i = 0; i < aktualny->edges.size(); i++) {
+				if (aktualny->edges.at(i)->other_end->visited == false) {
+					aktualny->edges.at(i)->other_end->visited = true;
+					do_odwiedzenia.push(aktualny->edges.at(i)->other_end);
+
+					//do shortestPath zapisujemy rodzica odpowiednich wiercholkow
+					shortestPath[aktualny->edges.at(i)->other_end->ordernum] = aktualny->ordernum;
+				}
+			}
+
+			if (aktualny->stan == end->stan) {
+				koniec = true;
+			} else
+				pathlength++;
+
+		}
+
+		return koniec;
+	}
     void unvisitAllVertices()
     {
         for(size_t i=0; i<this->vertices.size(); i++)
@@ -494,7 +511,7 @@ int main()
 {
 	srand(time(NULL));
     Stan start;
-    //start.tworzPlansze(true);
+    //start.tworzPlansze(true); //mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
     start.wczytajPlansze();
 
     Stan stop;
@@ -502,29 +519,59 @@ int main()
     stop.liczbaKolumn = start.liczbaKolumn;
     stop.tworzPlansze(false);
 
-    //start.wypiszPlansze();
-
     Graf* graf = new Graf(true,0);
 
     Vertex* vertexStart = new Vertex(start);
     graf->addVertex(vertexStart,-1);
 
     tworzGraf(vertexStart, graf);
-    //graf->printout();
+    graf->printout();
     Vertex* vertexStop = new Vertex(stop);
 
-    int pathlength=0; vector<int> path;
-    path.push_back(vertexStart->ordernum);
+    int pathlength = 0; vector<int> path;
 
-    graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
+    bool koniec = graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
 
     cout <<"DFS: " << endl;
-    cout << "dl. sciezki: " << pathlength <<endl;
-    for(size_t i =0; i<path.size(); i++)
-    {
-        Stan tmp = graf->getVertex(path.at(i))->stan;
-        cout << tmp << endl << endl;
-    }
+	if (!koniec) {
+		cout << "BRAK ROZWIAZANIA" << endl;
+	} else {
 
-    return 0;
+		cout << "LICZBA RUCHOW: " << pathlength << endl;
+		for (int i = (path.size() - 1); i >= 0; i--) {
+			Stan tmp = graf->getVertex(path.at(i))->stan;
+			cout << tmp.kierunekPrzemieszczeniaDziury;
+		}
+	}
+
+    path.clear();
+    pathlength = 0;
+    graf->unvisitAllVertices();
+
+    int shortestPathTmp[graf->vertices.size()];
+    koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path, shortestPathTmp);
+
+	cout << "\n\nBFS: " << endl;
+	if (!koniec) {
+		cout << "BRAK ROZWIAZANIA" << endl;
+	} else {
+
+		//tutaj bedzie przechowywana najkrotsza sciezka do wiercholka koncowego
+		vector<int> shortestPath;
+		int v = shortestPathTmp[graf->vertices.size() - 1];
+		while(true) {
+			if (v == 0) break;
+			shortestPath.push_back(v);
+			v = shortestPathTmp[v];
+		}
+
+		cout << "LICZBA RUCHOW: " << shortestPath.size() << endl;
+		for (int i = shortestPath.size() - 1; i >= 0 ; i--) {
+			Stan tmp =  graf->getVertex(shortestPath.at(i))->stan;
+			cout << tmp.kierunekPrzemieszczeniaDziury;
+		}
+	}
+
+	return 0;
+
 }
