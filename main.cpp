@@ -48,6 +48,14 @@ public:
 			}
 		}
 	}
+	~Stan() {
+		if (this->plansza != NULL) {
+			for (int i = 0; i < this->liczbaWierszy; i++) {
+				delete[] plansza[i];
+			}
+			delete[] this->plansza;
+		}
+	}
 
 	Stan& operator=(const Stan &stan2) {
 		if (this != &stan2) {
@@ -505,6 +513,7 @@ void tworzGraf(Vertex* vertexStart, Graf* graf) {
 //            }
 //        }
 //    }
+
 }
 
 int main()
@@ -571,6 +580,10 @@ int main()
 			cout << tmp.kierunekPrzemieszczeniaDziury;
 		}
 	}
+
+	delete vertexStart;
+	delete vertexStop;
+	delete graf;
 
 	return 0;
 
