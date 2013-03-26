@@ -7,20 +7,105 @@
 
 using namespace std;
 
-#define N 3
 #define GLEBOKOSC_REKURSJI 6
-//
+//zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
+#define PUSTE_POLE_PLANSZA 0
 
 class Stan{
+private:
+	void inicjalizujPlansze() {
+		plansza = new int *[this->liczbaWierszy];
+		for (int i = 0; i < this->liczbaWierszy; i++)
+			plansza[i] = new int[liczbaKolumn];
+	}
+
 public:
-    int plansza[N][N];
+    int **plansza;
+    int liczbaWierszy, liczbaKolumn;
     int pozycjaDziuryWiersz, pozycjaDziuryKolumna;
+
+    //okresla, która stronê zostala przmieszczona dziura w porownaniu do stanu poprzedniego
+    //mozliwe kierunki: LPGD
+    char kierunekPrzemieszczeniaDziury;
+
+    Stan() {
+    	this->plansza = NULL;
+    	this->kierunekPrzemieszczeniaDziury = NULL;
+    }
+	Stan(const Stan &stan2) {
+
+		this->liczbaKolumn = stan2.liczbaKolumn;
+		this->liczbaWierszy = stan2.liczbaWierszy;
+		this->pozycjaDziuryKolumna = stan2.pozycjaDziuryKolumna;
+		this->pozycjaDziuryWiersz = stan2.pozycjaDziuryWiersz;
+		this->kierunekPrzemieszczeniaDziury = stan2.kierunekPrzemieszczeniaDziury;
+
+		inicjalizujPlansze();
+
+		for (int i = 0; i < this->liczbaWierszy; i++) {
+			for (int j = 0; j < this->liczbaKolumn; j++) {
+				this->plansza[i][j] = stan2.plansza[i][j];
+			}
+		}
+	}
+	~Stan() {
+		if (this->plansza != NULL) {
+			for (int i = 0; i < this->liczbaWierszy; i++) {
+				delete[] plansza[i];
+			}
+			delete[] this->plansza;
+		}
+	}
+
+	Stan& operator=(const Stan &stan2) {
+		if (this != &stan2) {
+			this->liczbaKolumn = stan2.liczbaKolumn;
+			this->liczbaWierszy = stan2.liczbaWierszy;
+			this->pozycjaDziuryKolumna = stan2.pozycjaDziuryKolumna;
+			this->pozycjaDziuryWiersz = stan2.pozycjaDziuryWiersz;
+			this->kierunekPrzemieszczeniaDziury = stan2.kierunekPrzemieszczeniaDziury;
+
+			if (this->plansza != NULL) {
+				for (int i = 0; i < this->liczbaWierszy; i++) {
+					delete[] plansza[i];
+				}
+				delete[] this->plansza;
+			}
+			inicjalizujPlansze();
+
+			for (int i = 0; i < this->liczbaWierszy; i++) {
+				for (int j = 0; j < this->liczbaKolumn; j++) {
+					this->plansza[i][j] = stan2.plansza[i][j];
+				}
+			}
+		}
+		return *this;
+	}
+
+    void wczytajPlansze() {
+    	cin >> this->liczbaWierszy >> this->liczbaKolumn;
+
+    	inicjalizujPlansze();
+
+    	//przyjmujemy, ze zostaje wprowadzona poprawnie skonstruuowana plansza
+    	//tzn. elementy sie nie powtarzaja
+    	for (int i = 0; i < this->liczbaWierszy; i++) {
+    		for (int j = 0; j < this->liczbaKolumn; j++) {
+    			cin >> plansza[i][j];
+
+    			if (plansza[i][j] == PUSTE_POLE_PLANSZA) {
+    				this->pozycjaDziuryKolumna = j;
+    				this->pozycjaDziuryWiersz = i;
+    			}
+    		}
+    	}
+    }
 
     void wypiszPlansze()
     {
-        for(int i=0;i<N;i++)
+        for(int i=0;i<this->liczbaWierszy;i++)
         {
-            for(int j=0;j<N;j++)
+            for(int j=0;j<this->liczbaWierszy;j++)
             {
                 cout << plansza[i][j] << "\t";
             }
@@ -28,23 +113,25 @@ public:
         }
     }
 
-    void randomPlansza(bool notrandom=false)
+    void tworzPlansze(bool random = true)
     {
+    	inicjalizujPlansze();
+
         vector<int> dostepneKafelki;
 
-        for(int i=1;i<(N*N);i++)
+        for(int i=1;i<(this->liczbaWierszy*this->liczbaKolumn);i++)
         {
             dostepneKafelki.push_back(i);
         }
-        dostepneKafelki.push_back(-1);
+        dostepneKafelki.push_back(PUSTE_POLE_PLANSZA);
 
-        if(!notrandom) random_shuffle(dostepneKafelki.begin(),dostepneKafelki.end());
+        if(random) random_shuffle(dostepneKafelki.begin(),dostepneKafelki.end());
 
-        for(int i=0; i<N; i++)
-            for(int j=0; j<N; j++)
+        for(int i=0; i<this->liczbaWierszy; i++)
+            for(int j=0; j<this->liczbaKolumn; j++)
             {
-                plansza[i][j] = dostepneKafelki.at(j+i*N);
-                if(dostepneKafelki.at(j+i*N)==-1)
+                plansza[i][j] = dostepneKafelki.at(j+i*this->liczbaWierszy);
+                if(dostepneKafelki.at(j+i*this->liczbaWierszy) == PUSTE_POLE_PLANSZA)
                 {
                     pozycjaDziuryKolumna = j;
                     pozycjaDziuryWiersz = i;
@@ -52,38 +139,45 @@ public:
             }
     }
 
-    bool weryfikujStan()
-    {
-        bool isOk = true;
-        if(plansza[N-1][N-1]==-1)
-        {
-            for(int i=0; i<N; i++)
-            {
-                for(int j=0; j<N; j++)
-                {
-                    if(i==N-1 && j==N-1) continue;
-                    if(plansza[i][j]!=(j+i*N+1)) return false;
-                }
-            }
-        }
-        else isOk=false;
-
-        return isOk;
-    }
+//    bool weryfikujStan()
+//    {
+//        bool isOk = true;
+//        if(plansza[this->liczbaWierszy-1][this->liczbaKolumn-1]==PUSTE_POLE_PLANSZA)
+//        {
+//            for(int i=0; i<this->liczbaWierszy; i++)
+//            {
+//                for(int j=0; j<this->liczbaKolumn; j++)
+//                {
+//                    if(i==this->liczbaWierszy-1 && j==this->liczbaKolumn-1) continue;
+//                    if(plansza[i][j]!=(j+i*this->liczbaWierszy+1)) return false;
+//                }
+//            }
+//        }
+//        else isOk = false;
+//
+//        return isOk;
+//    }
 
     bool operator==(const Stan &stan2) {
-        return (this->plansza == stan2.plansza);
+        //przyjmujemy, ¿e plansze, które generujemy maja zawsze taki sam rozmiar
+    	for (int i = 0; i < this->liczbaWierszy; i++)
+        	for (int j = 0; j < this->liczbaKolumn; j++)
+        		if (this->plansza[i][j] != stan2.plansza[i][j])
+        			return false;
+
+    	return true;
     }
 
     friend ostream& operator<<(ostream &wyjscie, const Stan &stan)
     {
-        for(int i=0;i<N;i++)
+        for(int i=0;i<stan.liczbaWierszy;i++)
         {
-            for(int j=0;j<N;j++)
+            for(int j=0;j<stan.liczbaKolumn;j++)
             {
                 wyjscie << stan.plansza[i][j] << "\t";
             }
-            wyjscie << "\n";
+            if (i < stan.liczbaWierszy - 1)
+            	wyjscie << "\n";
         }
         return wyjscie;
     }
@@ -155,16 +249,17 @@ Vertex::~Vertex()
 
 Vertex* Vertex::operatorD(int wiersz, int kolumna)
 {
-    if(wiersz>=N-1) return NULL;
+    if(wiersz>= this->stan.liczbaWierszy -1) return NULL;
 
     Vertex* vertex = new Vertex(this->stan);
 
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz+1][kolumna];
 
-    vertex->stan.plansza[wiersz+1][kolumna] = -1;
+    vertex->stan.plansza[wiersz+1][kolumna] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryWiersz++;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'D';
 
     return vertex;
 }
@@ -178,9 +273,10 @@ Vertex* Vertex::operatorG(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz-1][kolumna];
 
-    vertex->stan.plansza[wiersz-1][kolumna] = -1;
+    vertex->stan.plansza[wiersz-1][kolumna] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryWiersz--;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'G';
 
     return vertex;
 }
@@ -194,38 +290,39 @@ Vertex* Vertex::operatorL(int wiersz, int kolumna)
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz][kolumna-1];
 
-    vertex->stan.plansza[wiersz][kolumna-1] = -1;
+    vertex->stan.plansza[wiersz][kolumna-1] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryKolumna--;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'L';
 
     return vertex;
 }
 
 Vertex* Vertex::operatorP(int wiersz, int kolumna)
 {
-    if(kolumna>=N-1) return NULL;
+    if(kolumna>=this->stan.liczbaKolumn-1) return NULL;
 
     Vertex* vertex = new Vertex(this->stan);
 
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz][kolumna+1];
 
-    vertex->stan.plansza[wiersz][kolumna+1] = -1;
+    vertex->stan.plansza[wiersz][kolumna+1] = PUSTE_POLE_PLANSZA;
 
     vertex->stan.pozycjaDziuryKolumna++;
+    vertex->stan.kierunekPrzemieszczeniaDziury = 'P';
 
     return vertex;
 }
 
 Vertex* Vertex::executeOperator(int index, int wiersz, int kolumna)
 {
-    //cout << "V::eO " << index << " " << wiersz << " " << kolumna << endl;
     return (this->*wskOperatory.at(index))(wiersz,kolumna);
 }
 
 void Vertex::printout()
 {
-    cout << "Wierzcholek #" << this->ordernum << " "<< this->stan << endl;
+    cout << "Wierzcholek #" << this->ordernum << "\n"<< this->stan << endl;
     cout << "Lista krawedzi: \n";
     for(vector<Edge*>::iterator i=edges.begin();i<edges.end();i++)
     {
@@ -310,7 +407,7 @@ public:
 
         if(start->stan == end->stan)
         {
-            pathlength=0;
+            pathlength = 0;
             return true;
         }
 
@@ -329,36 +426,42 @@ public:
             }
         }
     }
-    bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path) {
-        queue <Vertex* > do_odwiedzenia;
-        do_odwiedzenia.push(start);
+	bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path, int *shortestPath) {
+		queue<Vertex*> do_odwiedzenia;
+		do_odwiedzenia.push(start);
 
-        path.push_back(start->ordernum);
-        bool koniec = false;
-        pathlength = 0;
+		//path.push_back(start->ordernum);
+		bool koniec = false;
+		pathlength = 0;
 
-        while( !do_odwiedzenia.empty() && !koniec ){
-            Vertex* aktualny;
-            aktualny = do_odwiedzenia.front();
-            do_odwiedzenia.pop();
-            if (!aktualny->visited){
-                aktualny->visited = true;
-                sort(aktualny->edges.begin(), aktualny->edges.end());
+		while (!do_odwiedzenia.empty() && !koniec) {
+			Vertex* aktualny;
+			aktualny = do_odwiedzenia.front();
+			do_odwiedzenia.pop();
 
-                for (size_t i = 0; i < aktualny->edges.size() ; i++){
-                    if( aktualny->edges.at(i)->other_end->stan == end->stan ){
-                        koniec = true;
-                    }
-                    do_odwiedzenia.push(aktualny->edges.at(i)->other_end);
+			sort(aktualny->edges.begin(), aktualny->edges.end());
 
-                    path.push_back(aktualny->edges.at(i)->other_end->ordernum);
-                    pathlength++;
-                }
-            }
-        }
+			path.push_back(aktualny->ordernum);
 
-        return koniec;
-    }
+			for (size_t i = 0; i < aktualny->edges.size(); i++) {
+				if (aktualny->edges.at(i)->other_end->visited == false) {
+					aktualny->edges.at(i)->other_end->visited = true;
+					do_odwiedzenia.push(aktualny->edges.at(i)->other_end);
+
+					//do shortestPath zapisujemy rodzica odpowiednich wiercholkow
+					shortestPath[aktualny->edges.at(i)->other_end->ordernum] = aktualny->ordernum;
+				}
+			}
+
+			if (aktualny->stan == end->stan) {
+				koniec = true;
+			} else
+				pathlength++;
+
+		}
+
+		return koniec;
+	}
     void unvisitAllVertices()
     {
         for(size_t i=0; i<this->vertices.size(); i++)
@@ -368,58 +471,120 @@ public:
     }
 };
 
-void tworzGraf(Vertex* vertexStart, Graf* graf, int glebokoscRekursji=0) {
-    if(glebokoscRekursji>=GLEBOKOSC_REKURSJI) return;
-    Vertex* vertexResult;
+void tworzGraf(Vertex* vertexStart, Graf* graf) {
+	Vertex* vertexResult;
 
-    for(size_t i=0; i<vertexStart->wskOperatory.size(); i++)
-    {
-        //cout << "tG:i" << i << endl;
-        vertexResult = vertexStart->executeOperator(i, vertexStart->stan.pozycjaDziuryWiersz, vertexStart->stan.pozycjaDziuryKolumna);
-        if(vertexResult!=NULL)
-        {
-            //cout << "not null\n";
-            int pozycja = graf->addVertexWithCheck(vertexResult);
-            if (pozycja != -1) {
-                //cout << "pozycja="<<pozycja<<endl;
-                graf->makeEdge(vertexStart, graf->getVertex(pozycja), 0);
-                tworzGraf(vertexResult, graf, ++glebokoscRekursji);
-            }
-        }
-    }
+	//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
+	queue<Vertex*> verticesToProcessing;
+	verticesToProcessing.push(vertexStart);
+
+	int aktualnaGlebokosc = 1;
+	//dopoki sa wierzcholki, dla ktorych ma byc generowane przejscie, dopoty to generujemy
+	while (!verticesToProcessing.empty()) {
+		Vertex* actualVertex = verticesToProcessing.front();
+		verticesToProcessing.pop();
+
+		//dla kazdego wierzcholka generuje sie przejscia do nastepnego stanu (moga byc max 4 przejscia)
+		for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
+			vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
+			if (vertexResult) {
+				int pozycja = graf->addVertexWithCheck(vertexResult);
+				if (pozycja != -1) {
+					graf->makeEdge(actualVertex, graf->getVertex(pozycja), 0);
+
+					//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
+					if (aktualnaGlebokosc < GLEBOKOSC_REKURSJI)
+						verticesToProcessing.push(vertexResult);
+				}
+			}
+		}
+		aktualnaGlebokosc++;
+	}
+
+//    for(size_t i = 0; i<vertexStart->wskOperatory.size(); i++)
+//    {
+//        vertexResult = vertexStart->executeOperator(i, vertexStart->stan.pozycjaDziuryWiersz, vertexStart->stan.pozycjaDziuryKolumna);
+//        if(vertexResult!=NULL)
+//        {
+//            int pozycja = graf->addVertexWithCheck(vertexResult);
+//            if (pozycja != -1) {
+//                graf->makeEdge(vertexStart, graf->getVertex(pozycja), 0);
+//                tworzGraf(vertexResult, graf, ++glebokoscRekursji);
+//            }
+//        }
+//    }
+
 }
-
-//
 
 int main()
 {
-    srand(time(NULL));
+	srand(time(NULL));
     Stan start;
-    start.randomPlansza();
+    //start.tworzPlansze(true); //mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
+    start.wczytajPlansze();
 
     Stan stop;
-    stop.randomPlansza(true);
-
-    start.wypiszPlansze();
+    stop.liczbaWierszy = start.liczbaWierszy;
+    stop.liczbaKolumn = start.liczbaKolumn;
+    stop.tworzPlansze(false);
 
     Graf* graf = new Graf(true,0);
 
     Vertex* vertexStart = new Vertex(start);
-
     graf->addVertex(vertexStart,-1);
-    tworzGraf(vertexStart, graf);
 
+    tworzGraf(vertexStart, graf);
+    graf->printout();
     Vertex* vertexStop = new Vertex(stop);
 
-    int pathlength=0; vector<int> path;
-    graf->DFSFindVertex(vertexStart,vertexStop,pathlength,path);
+    int pathlength = 0; vector<int> path;
 
-    cout << pathlength;
-    for(size_t i =0; i<path.size(); i++)
-    {
-        Vertex* tmp = graf->getVertex(path.at(i));
-        tmp->printout();
-    }
+    bool koniec = graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
 
-    return 0;
+    cout <<"DFS: " << endl;
+	if (!koniec) {
+		cout << "BRAK ROZWIAZANIA" << endl;
+	} else {
+
+		cout << "LICZBA RUCHOW: " << pathlength << endl;
+		for (int i = (path.size() - 1); i >= 0; i--) {
+			Stan tmp = graf->getVertex(path.at(i))->stan;
+			cout << tmp.kierunekPrzemieszczeniaDziury;
+		}
+	}
+
+    path.clear();
+    pathlength = 0;
+    graf->unvisitAllVertices();
+
+    int shortestPathTmp[graf->vertices.size()];
+    koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path, shortestPathTmp);
+
+	cout << "\n\nBFS: " << endl;
+	if (!koniec) {
+		cout << "BRAK ROZWIAZANIA" << endl;
+	} else {
+
+		//tutaj bedzie przechowywana najkrotsza sciezka do wiercholka koncowego
+		vector<int> shortestPath;
+		int v = shortestPathTmp[graf->vertices.size() - 1];
+		while(true) {
+			if (v == 0) break;
+			shortestPath.push_back(v);
+			v = shortestPathTmp[v];
+		}
+
+		cout << "LICZBA RUCHOW: " << shortestPath.size() << endl;
+		for (int i = shortestPath.size() - 1; i >= 0 ; i--) {
+			Stan tmp =  graf->getVertex(shortestPath.at(i))->stan;
+			cout << tmp.kierunekPrzemieszczeniaDziury;
+		}
+	}
+
+	delete vertexStart;
+	delete vertexStop;
+	delete graf;
+
+	return 0;
+
 }
