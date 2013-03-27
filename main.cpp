@@ -4,10 +4,10 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
-
+#include <stack>
 using namespace std;
 
-#define GLEBOKOSC_REKURSJI 6
+#define GLEBOKOSC_REKURSJI 20
 //zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
 #define PUSTE_POLE_PLANSZA 0
 
@@ -195,6 +195,8 @@ private:
 
 public:
     bool visited;
+    Vertex* BFS_parent;
+
     int ordernum;
     Stan stan;
     vector<Edge*> edges;
@@ -232,6 +234,7 @@ public:
 Vertex::Vertex(Stan stan) {
     this->stan = stan;
     this->visited = false;
+    this->BFS_parent = NULL;
 
     this->wskOperatory.push_back(&Vertex::operatorD);
     this->wskOperatory.push_back(&Vertex::operatorG);
@@ -323,6 +326,8 @@ Vertex* Vertex::executeOperator(int index, int wiersz, int kolumna)
 void Vertex::printout()
 {
     cout << "Wierzcholek #" << this->ordernum << "\n"<< this->stan << endl;
+    if(this->BFS_parent)
+        cout << "BFS_parent: " << this->BFS_parent << " prowadzi do #" << this->BFS_parent->ordernum << "\n";
     cout << "Lista krawedzi: \n";
     for(vector<Edge*>::iterator i=edges.begin();i<edges.end();i++)
     {
@@ -361,6 +366,15 @@ public:
     Vertex* getVertex(int orderno)
     {
         return this->vertices.at(orderno);
+    }
+
+    Vertex* getVertex(Stan stan)
+    {
+        for(size_t i=0; i<this->vertices.size();i++)
+        {
+            if(this->vertices.at(i)->stan == stan)
+                return this->vertices.at(i);
+        }
     }
 
     int addVertex(Vertex* vertex,int place=-1)
@@ -426,7 +440,7 @@ public:
             }
         }
     }
-	bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path, int *shortestPath) {
+	bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path) {
 		queue<Vertex*> do_odwiedzenia;
 		do_odwiedzenia.push(start);
 
@@ -448,8 +462,8 @@ public:
 					aktualny->edges.at(i)->other_end->visited = true;
 					do_odwiedzenia.push(aktualny->edges.at(i)->other_end);
 
-					//do shortestPath zapisujemy rodzica odpowiednich wiercholkow
-					shortestPath[aktualny->edges.at(i)->other_end->ordernum] = aktualny->ordernum;
+                    //zapisz parenta nastepnemu wierzcholkowi
+                    aktualny->edges.at(i)->other_end->BFS_parent = aktualny;
 				}
 			}
 
@@ -534,7 +548,7 @@ int main()
     graf->addVertex(vertexStart,-1);
 
     tworzGraf(vertexStart, graf);
-    graf->printout();
+
     Vertex* vertexStop = new Vertex(stop);
 
     int pathlength = 0; vector<int> path;
@@ -557,27 +571,32 @@ int main()
     pathlength = 0;
     graf->unvisitAllVertices();
 
-    int shortestPathTmp[graf->vertices.size()];
-    koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path, shortestPathTmp);
+    koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path);
 
 	cout << "\n\nBFS: " << endl;
 	if (!koniec) {
 		cout << "BRAK ROZWIAZANIA" << endl;
 	} else {
 
-		//tutaj bedzie przechowywana najkrotsza sciezka do wiercholka koncowego
-		vector<int> shortestPath;
-		int v = shortestPathTmp[graf->vertices.size() - 1];
-		while(true) {
-			if (v == 0) break;
-			shortestPath.push_back(v);
-			v = shortestPathTmp[v];
+		//poczawszy od konca skacz po parentach
+		Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
+		//test
+		//Vertex* tmpvptr = graf->getVertex(4);
+		//
+		int liczbaruchow = 0;
+		stack<char> resultPath;
+		while(tmpvptr!= vertexStart && tmpvptr!=NULL)
+		{
+		    resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
+		    tmpvptr=tmpvptr->BFS_parent;
+		    liczbaruchow++;
 		}
-
-		cout << "LICZBA RUCHOW: " << shortestPath.size() << endl;
-		for (int i = shortestPath.size() - 1; i >= 0 ; i--) {
-			Stan tmp =  graf->getVertex(shortestPath.at(i))->stan;
-			cout << tmp.kierunekPrzemieszczeniaDziury;
+		cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
+		while(!resultPath.empty())
+		{
+		    char tmp = resultPath.top();
+		    resultPath.pop();
+		    cout << tmp;
 		}
 	}
 
