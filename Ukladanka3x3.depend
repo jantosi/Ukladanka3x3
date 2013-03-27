@@ -7,11 +7,12 @@
 	<algorithm>
 	<queue>
 
-1364372525 source:c:\users\kuba\documents\github\ukladanka3x3\main.cpp
+1364374172 source:c:\users\kuba\documents\github\ukladanka3x3\main.cpp
 	<iostream>
 	<ctime>
 	<cmath>
 	<vector>
 	<algorithm>
 	<queue>
+	<stack>
 
