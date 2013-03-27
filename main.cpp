@@ -530,9 +530,66 @@ void tworzGraf(Vertex* vertexStart, Graf* graf) {
 
 }
 
-int main()
+void printUsageInfo()
 {
-	srand(time(NULL));
+    cout << "USAGE:\n";
+    cout << "TODO;\n";
+}
+
+int argZeroToInt(char* arg)
+{
+    cout << "[" << arg << "]\n";
+    if(arg == "-a" || arg == "--a")
+        return 0;
+    if(arg == "-b" || arg == "--bfs")
+        return 1;
+    if(arg == "-d" || arg == "--dfs")
+        return 2;
+    if(arg == "-i" || arg == "--idfs")
+        return 3;
+}
+
+int main(int argc, char* argv[])
+{
+
+
+    srand(time(NULL));
+
+    //parse args
+    if(argc<3)
+    {
+        cout << "Arguments missing.\n";
+        printUsageInfo();
+    }
+    else
+    {
+        if((argv[1]=="-a" || argv[1]=="--a")&&argc<4)
+        {
+            cout << "Arguments missing.\n";
+            printUsageInfo();
+        }
+        else
+        {
+            switch(argZeroToInt(argv[1]))
+            {
+                case 0:
+                    cout << "A*";
+                break;
+                case 1:
+                    cout << "BFS";
+                break;
+                case 2:
+                    cout << "DFS";
+                break;
+                case 3:
+                    cout << "iDFS";
+                break;
+            }
+        }
+    }
+    //
+
+
     Stan start;
     //start.tworzPlansze(true); //mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
     start.wczytajPlansze();
