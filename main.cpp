@@ -7,7 +7,7 @@
 #include <stack>
 using namespace std;
 
-#define GLEBOKOSC_REKURSJI 20
+//#define GLEBOKOSC_REKURSJI 20
 //zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
 #define PUSTE_POLE_PLANSZA 0
 
@@ -485,16 +485,16 @@ public:
     }
 };
 
-void tworzGraf(Vertex* vertexStart, Graf* graf) {
+void tworzGraf(Vertex* vertexStart, Vertex* vertexStop, Graf* graf) {
 	Vertex* vertexResult;
 
 	//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
 	queue<Vertex*> verticesToProcessing;
 	verticesToProcessing.push(vertexStart);
 
-	int aktualnaGlebokosc = 1;
+	bool koniec = (vertexStart->stan == vertexStop->stan? true : false);
 	//dopoki sa wierzcholki, dla ktorych ma byc generowane przejscie, dopoty to generujemy
-	while (!verticesToProcessing.empty()) {
+	while (!verticesToProcessing.empty() && !koniec) {
 		Vertex* actualVertex = verticesToProcessing.front();
 		verticesToProcessing.pop();
 
@@ -507,12 +507,13 @@ void tworzGraf(Vertex* vertexStart, Graf* graf) {
 					graf->makeEdge(actualVertex, graf->getVertex(pozycja), 0);
 
 					//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
-					if (aktualnaGlebokosc < GLEBOKOSC_REKURSJI)
+					if (vertexResult->stan == vertexStop->stan)
+						koniec = true;
+					else
 						verticesToProcessing.push(vertexResult);
 				}
 			}
 		}
-		aktualnaGlebokosc++;
 	}
 
 //    for(size_t i = 0; i<vertexStart->wskOperatory.size(); i++)
@@ -604,9 +605,11 @@ int main(int argc, char* argv[])
     Vertex* vertexStart = new Vertex(start);
     graf->addVertex(vertexStart,-1);
 
-    tworzGraf(vertexStart, graf);
-
     Vertex* vertexStop = new Vertex(stop);
+
+    tworzGraf(vertexStart, vertexStop, graf);
+
+
 
     int pathlength = 0; vector<int> path;
 
