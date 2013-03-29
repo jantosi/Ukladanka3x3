@@ -7,7 +7,6 @@
 #include <stack>
 using namespace std;
 
-//#define GLEBOKOSC_REKURSJI 20
 //zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
 #define PUSTE_POLE_PLANSZA 0
 
@@ -138,25 +137,28 @@ public:
                 }
             }
     }
+	bool sprawdzRozwiazywalnosc() {
 
-//    bool weryfikujStan()
-//    {
-//        bool isOk = true;
-//        if(plansza[this->liczbaWierszy-1][this->liczbaKolumn-1]==PUSTE_POLE_PLANSZA)
-//        {
-//            for(int i=0; i<this->liczbaWierszy; i++)
-//            {
-//                for(int j=0; j<this->liczbaKolumn; j++)
-//                {
-//                    if(i==this->liczbaWierszy-1 && j==this->liczbaKolumn-1) continue;
-//                    if(plansza[i][j]!=(j+i*this->liczbaWierszy+1)) return false;
-//                }
-//            }
-//        }
-//        else isOk = false;
-//
-//        return isOk;
-//    }
+		//jezeli numer wiersza polozenia dziury jest nieparzysty to do liczbyPermutacji musimy dodac 1
+		bool parzystoscPolozeniaDziury = ((this->pozycjaDziuryWiersz + 1) % 2) == 0;
+		int liczbaPermutacji = parzystoscPolozeniaDziury? 0 : 1;
+
+		for (int wiersz = 0; wiersz < this->liczbaWierszy; wiersz++) {
+			for (int kolumna = 0; kolumna < this->liczbaKolumn; kolumna++) {
+				//sprawdzamy ile permutacji nalezy wykonac w kazdym wierszu aby ulozyc odpowiednio elementy
+				for (int kolumnaPrzed = 0; kolumnaPrzed < kolumna; kolumnaPrzed++) {
+					if (this->plansza[wiersz][kolumnaPrzed] > plansza[wiersz][kolumna] && plansza[wiersz][kolumna] != PUSTE_POLE_PLANSZA)
+						liczbaPermutacji++;
+				}
+			}
+		}
+
+		bool parzystoscLiczbyPermutacji = (liczbaPermutacji % 2) == 0;
+
+		//jesli parzystosc wykonanych permutacji jest taka sama jak parzystosc polozenia dziury
+		// to plansza jest rozwiazywalna
+		return (parzystoscLiczbyPermutacji == parzystoscPolozeniaDziury);
+	}
 
     bool operator==(const Stan &stan2) {
         //przyjmujemy, ¿e plansze, które generujemy maja zawsze taki sam rozmiar
@@ -486,49 +488,38 @@ public:
 };
 
 void tworzGraf(Vertex* vertexStart, Vertex* vertexStop, Graf* graf) {
-	Vertex* vertexResult;
 
-	//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
-	queue<Vertex*> verticesToProcessing;
-	verticesToProcessing.push(vertexStart);
+	if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
+		Vertex* vertexResult;
 
-	bool koniec = (vertexStart->stan == vertexStop->stan? true : false);
-	//dopoki sa wierzcholki, dla ktorych ma byc generowane przejscie, dopoty to generujemy
-	while (!verticesToProcessing.empty() && !koniec) {
-		Vertex* actualVertex = verticesToProcessing.front();
-		verticesToProcessing.pop();
+		//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
+		queue<Vertex*> verticesToProcessing;
+		verticesToProcessing.push(vertexStart);
 
-		//dla kazdego wierzcholka generuje sie przejscia do nastepnego stanu (moga byc max 4 przejscia)
-		for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
-			vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
-			if (vertexResult) {
-				int pozycja = graf->addVertexWithCheck(vertexResult);
-				if (pozycja != -1) {
-					graf->makeEdge(actualVertex, graf->getVertex(pozycja), 0);
+		bool koniec = (vertexStart->stan == vertexStop->stan ? true : false);
+		//dopoki sa wierzcholki, dla ktorych ma byc generowane przejscie, dopoty to generujemy
+		while (!verticesToProcessing.empty() && !koniec) {
+			Vertex* actualVertex = verticesToProcessing.front();
+			verticesToProcessing.pop();
 
-					//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
-					if (vertexResult->stan == vertexStop->stan)
-						koniec = true;
-					else
-						verticesToProcessing.push(vertexResult);
+			//dla kazdego wierzcholka generuje sie przejscia do nastepnego stanu (moga byc max 4 przejscia)
+			for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
+				vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
+				if (vertexResult) {
+					int pozycja = graf->addVertexWithCheck(vertexResult);
+					if (pozycja != -1) {
+						graf->makeEdge(actualVertex, graf->getVertex(pozycja), 0);
+
+						//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
+						if (vertexResult->stan == vertexStop->stan)
+							koniec = true;
+						else
+							verticesToProcessing.push(vertexResult);
+					}
 				}
 			}
 		}
 	}
-
-//    for(size_t i = 0; i<vertexStart->wskOperatory.size(); i++)
-//    {
-//        vertexResult = vertexStart->executeOperator(i, vertexStart->stan.pozycjaDziuryWiersz, vertexStart->stan.pozycjaDziuryKolumna);
-//        if(vertexResult!=NULL)
-//        {
-//            int pozycja = graf->addVertexWithCheck(vertexResult);
-//            if (pozycja != -1) {
-//                graf->makeEdge(vertexStart, graf->getVertex(pozycja), 0);
-//                tworzGraf(vertexResult, graf, ++glebokoscRekursji);
-//            }
-//        }
-//    }
-
 }
 
 void printUsageInfo()
