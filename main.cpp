@@ -5,10 +5,13 @@
 #include <algorithm>
 #include <queue>
 #include <stack>
+#include <string.h>
+
 using namespace std;
 
 //zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
 #define PUSTE_POLE_PLANSZA 0
+#define WSZERZ 1
 
 class Stan{
 private:
@@ -198,6 +201,7 @@ private:
 public:
     bool visited;
     Vertex* BFS_parent;
+    char* kolejnoscOperatorow;
 
     int ordernum;
     Stan stan;
@@ -206,7 +210,7 @@ public:
     //vector wskaznikow na operatory
     vector <Vertex* (Vertex::*)(int,int)> wskOperatory;
 
-    Vertex(Stan stan);
+    Vertex(Stan stan, char* kolejnosOperatorow);
     ~Vertex();
 
     void printout();
@@ -233,15 +237,23 @@ public:
     }
 };
 
-Vertex::Vertex(Stan stan) {
+Vertex::Vertex(Stan stan, char* kolejnoscOperatorow) {
     this->stan = stan;
     this->visited = false;
     this->BFS_parent = NULL;
+    this->kolejnoscOperatorow = kolejnoscOperatorow;
 
-    this->wskOperatory.push_back(&Vertex::operatorD);
-    this->wskOperatory.push_back(&Vertex::operatorG);
-    this->wskOperatory.push_back(&Vertex::operatorP);
-    this->wskOperatory.push_back(&Vertex::operatorL);
+    for (int i = 0; i < 4; i++) {
+    	if (toupper(this->kolejnoscOperatorow[i]) == 'L' ) {
+    		 this->wskOperatory.push_back(&Vertex::operatorL);
+    	} else if (toupper(this->kolejnoscOperatorow[i]) == 'P' ) {
+    		this->wskOperatory.push_back(&Vertex::operatorP);
+    	} else if (toupper(this->kolejnoscOperatorow[i]) == 'G' ) {
+    		this->wskOperatory.push_back(&Vertex::operatorG);
+    	} else if (toupper(this->kolejnoscOperatorow[i]) == 'D' ) {
+    		this->wskOperatory.push_back(&Vertex::operatorD);
+    	}
+    }
 }
 
 Vertex::~Vertex()
@@ -256,7 +268,7 @@ Vertex* Vertex::operatorD(int wiersz, int kolumna)
 {
     if(wiersz>= this->stan.liczbaWierszy -1) return NULL;
 
-    Vertex* vertex = new Vertex(this->stan);
+    Vertex* vertex = new Vertex(this->stan, this->kolejnoscOperatorow);
 
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz+1][kolumna];
@@ -273,7 +285,7 @@ Vertex* Vertex::operatorG(int wiersz, int kolumna)
 {
     if(wiersz<=0) return NULL;
 
-    Vertex* vertex = new Vertex(this->stan);
+    Vertex* vertex = new Vertex(this->stan, this->kolejnoscOperatorow);
 
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz-1][kolumna];
@@ -290,7 +302,7 @@ Vertex* Vertex::operatorL(int wiersz, int kolumna)
 {
     if(kolumna<=0) return NULL;
 
-    Vertex* vertex = new Vertex(this->stan);
+    Vertex* vertex = new Vertex(this->stan, this->kolejnoscOperatorow);
 
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz][kolumna-1];
@@ -307,7 +319,7 @@ Vertex* Vertex::operatorP(int wiersz, int kolumna)
 {
     if(kolumna>=this->stan.liczbaKolumn-1) return NULL;
 
-    Vertex* vertex = new Vertex(this->stan);
+    Vertex* vertex = new Vertex(this->stan, this->kolejnoscOperatorow);
 
     vertex->stan.plansza[wiersz][kolumna] =
         vertex->stan.plansza[wiersz][kolumna+1];
@@ -339,6 +351,38 @@ void Vertex::printout()
 
 class Graf
 {
+private:
+	void BFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
+		Vertex* vertexResult;
+
+		//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
+		queue<Vertex*> verticesToProcessing;
+		verticesToProcessing.push(vertexStart);
+
+		bool koniec = (vertexStart->stan == vertexStop->stan ? true : false);
+		//dopoki sa wierzcholki, dla ktorych ma byc generowane przejscie, dopoty to generujemy
+		while (!verticesToProcessing.empty() && !koniec) {
+			Vertex* actualVertex = verticesToProcessing.front();
+			verticesToProcessing.pop();
+
+			//dla kazdego wierzcholka generuje sie przejscia do nastepnego stanu (moga byc max 4 przejscia)
+			for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
+				vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
+				if (vertexResult) {
+					int pozycja = this->addVertexWithCheck(vertexResult);
+					if (pozycja != -1) {
+						this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
+						//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
+						if (vertexResult->stan == vertexStop->stan)
+							koniec = true;
+						else
+							verticesToProcessing.push(vertexResult);
+					}
+				}
+			}
+		}
+	}
+
 public:
     vector<Vertex*> vertices;
     bool isDigraph;
@@ -350,9 +394,6 @@ public:
     }
 
     int addVertexWithCheck(Vertex* tmp) {
-        //cout<<"addVwC\n";
-        //tmp->printout();
-        //cout << "\n\n";
         for (size_t i = 0; i < vertices.size(); i++)
         {
             if (vertices[i]->stan == tmp->stan)
@@ -485,42 +526,21 @@ public:
             this->vertices.at(i)->visited = false;
         }
     }
-};
 
-void tworzGraf(Vertex* vertexStart, Vertex* vertexStop, Graf* graf) {
+	void genrujStany(Vertex* vertexStart, Vertex* vertexStop, int strategiaGenerowania) {
 
-	if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
-		Vertex* vertexResult;
-
-		//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
-		queue<Vertex*> verticesToProcessing;
-		verticesToProcessing.push(vertexStart);
-
-		bool koniec = (vertexStart->stan == vertexStop->stan ? true : false);
-		//dopoki sa wierzcholki, dla ktorych ma byc generowane przejscie, dopoty to generujemy
-		while (!verticesToProcessing.empty() && !koniec) {
-			Vertex* actualVertex = verticesToProcessing.front();
-			verticesToProcessing.pop();
-
-			//dla kazdego wierzcholka generuje sie przejscia do nastepnego stanu (moga byc max 4 przejscia)
-			for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
-				vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
-				if (vertexResult) {
-					int pozycja = graf->addVertexWithCheck(vertexResult);
-					if (pozycja != -1) {
-						graf->makeEdge(actualVertex, graf->getVertex(pozycja), 0);
-
-						//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
-						if (vertexResult->stan == vertexStop->stan)
-							koniec = true;
-						else
-							verticesToProcessing.push(vertexResult);
-					}
-				}
+		if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
+			switch (strategiaGenerowania) {
+			case WSZERZ:
+				this->BFSGenerujStany(vertexStart, vertexStop);
+				break;
 			}
+
 		}
 	}
-}
+};
+
+
 
 void printUsageInfo()
 {
@@ -528,132 +548,149 @@ void printUsageInfo()
     cout << "TODO;\n";
 }
 
-int argZeroToInt(char* arg)
+int argToInt(char* arg)
 {
-    cout << "[" << arg << "]\n";
-    if(arg == "-a" || arg == "--a")
+    //cout << "[" << arg << "]\n";
+    if(strcmp(arg,"-a") == 0 || strcmp(arg,"--a") == 0)
         return 0;
-    if(arg == "-b" || arg == "--bfs")
+    if(strcmp(arg,"-b") == 0 || strcmp(arg,"--bfs") == 0)
         return 1;
-    if(arg == "-d" || arg == "--dfs")
+    if(strcmp(arg,"-d") == 0 ||strcmp(arg,"--dfs") == 0)
         return 2;
-    if(arg == "-i" || arg == "--idfs")
+    if(strcmp(arg,"-i") == 0 || strcmp(arg,"--idfs") == 0)
         return 3;
 }
 
 int main(int argc, char* argv[])
 {
+	const int ARGUMENTS_MISSING_EX = 1000;
+
+    srand(time(0));
+
+	try {
+		//parse args
+		if (argc < 3) {
+			throw ARGUMENTS_MISSING_EX;
+
+		} else {
+			if ( (strcmp(argv[1],"-a") == 0 || strcmp(argv[1],"--a") == 0) && argc < 4) {
+
+				throw ARGUMENTS_MISSING_EX;
+
+			} else {
+
+				// jesli jako porzadek podano "R" to nalezy losowac za kazdym razem kolejnosc operatorow
+				if (toupper(argv[2][0]) == 'R') {
+					char kolejnoscWzorcowa[] = "LPGD";
+					random_shuffle(&kolejnoscWzorcowa[0], &kolejnoscWzorcowa[4]);
+
+					argv[2] = kolejnoscWzorcowa;
+				}
+
+				Stan start;
+				//mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
+				//start.tworzPlansze(true);
+				start.wczytajPlansze();
+
+				//w argv[2] znajduje siê porz¹dek przeszukiwania podany przez uzytkownika
+				Vertex* vertexStart = new Vertex(start, argv[2]);
+
+				Stan stop;
+				stop.liczbaWierszy = start.liczbaWierszy;
+				stop.liczbaKolumn = start.liczbaKolumn;
+				stop.tworzPlansze(false);
+
+				Vertex* vertexStop = new Vertex(stop, argv[2]);
 
 
-    srand(time(NULL));
+				Graf* graf = new Graf(true, 0);
+				graf->addVertex(vertexStart, -1);
 
-    //parse args
-    if(argc<3)
-    {
-        cout << "Arguments missing.\n";
-        printUsageInfo();
-    }
-    else
-    {
-        if((argv[1]=="-a" || argv[1]=="--a")&&argc<4)
-        {
-            cout << "Arguments missing.\n";
-            printUsageInfo();
-        }
-        else
-        {
-            switch(argZeroToInt(argv[1]))
-            {
-                case 0:
-                    cout << "A*";
-                break;
-                case 1:
-                    cout << "BFS";
-                break;
-                case 2:
-                    cout << "DFS";
-                break;
-                case 3:
-                    cout << "iDFS";
-                break;
-            }
-        }
-    }
-    //
+				switch (argToInt(argv[1])) {
+				case 0:
+				{
+					cout << "A*";
+					break;
+				}
+				case 1:
+				{
+					cout << "BFS";
 
+					graf->genrujStany(vertexStart, vertexStop, WSZERZ);
 
-    Stan start;
-    //start.tworzPlansze(true); //mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
-    start.wczytajPlansze();
+					int pathlength = 0;
+					vector<int> path;
 
-    Stan stop;
-    stop.liczbaWierszy = start.liczbaWierszy;
-    stop.liczbaKolumn = start.liczbaKolumn;
-    stop.tworzPlansze(false);
+					bool koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path);
 
-    Graf* graf = new Graf(true,0);
+					cout << "\n\nBFS: " << endl;
+					if (!koniec) {
+						cout << "BRAK ROZWIAZANIA" << endl;
+					} else {
+						//poczawszy od konca skacz po parentach
+						Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
+						int liczbaruchow = 0;
+						stack<char> resultPath;
 
-    Vertex* vertexStart = new Vertex(start);
-    graf->addVertex(vertexStart,-1);
+						while (tmpvptr != vertexStart && tmpvptr != NULL) {
+							resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
+							tmpvptr = tmpvptr->BFS_parent;
+							liczbaruchow++;
+						}
+						cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
+						while (!resultPath.empty()) {
+							char tmp = resultPath.top();
+							resultPath.pop();
+							cout << tmp;
+						}
+					}
 
-    Vertex* vertexStop = new Vertex(stop);
+					break;
+				}
+				case 2:
+				{
+					cout << "DFS";
 
-    tworzGraf(vertexStart, vertexStop, graf);
+					graf->genrujStany(vertexStart, vertexStop, WSZERZ);
 
+					int pathlength = 0;
+					vector<int> path;
 
+					bool koniec = graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
 
-    int pathlength = 0; vector<int> path;
+					cout << "DFS: " << endl;
+					if (!koniec) {
+						cout << "BRAK ROZWIAZANIA" << endl;
+					} else {
 
-    bool koniec = graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
+						cout << "LICZBA RUCHOW: " << pathlength << endl;
+						for (int i = (path.size() - 1); i >= 0; i--) {
+							Stan tmp = graf->getVertex(path.at(i))->stan;
+							cout << tmp.kierunekPrzemieszczeniaDziury;
+						}
+					}
 
-    cout <<"DFS: " << endl;
-	if (!koniec) {
-		cout << "BRAK ROZWIAZANIA" << endl;
-	} else {
+					break;
+				}
+				case 3:
+				{
+					cout << "iDFS";
+					break;
+				}
+				}
 
-		cout << "LICZBA RUCHOW: " << pathlength << endl;
-		for (int i = (path.size() - 1); i >= 0; i--) {
-			Stan tmp = graf->getVertex(path.at(i))->stan;
-			cout << tmp.kierunekPrzemieszczeniaDziury;
+				delete vertexStart;
+				delete vertexStop;
+				delete graf;
+
+			}
 		}
+
 	}
-
-    path.clear();
-    pathlength = 0;
-    graf->unvisitAllVertices();
-
-    koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path);
-
-	cout << "\n\nBFS: " << endl;
-	if (!koniec) {
-		cout << "BRAK ROZWIAZANIA" << endl;
-	} else {
-
-		//poczawszy od konca skacz po parentach
-		Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
-		//test
-		//Vertex* tmpvptr = graf->getVertex(4);
-		//
-		int liczbaruchow = 0;
-		stack<char> resultPath;
-		while(tmpvptr!= vertexStart && tmpvptr!=NULL)
-		{
-		    resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
-		    tmpvptr=tmpvptr->BFS_parent;
-		    liczbaruchow++;
-		}
-		cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
-		while(!resultPath.empty())
-		{
-		    char tmp = resultPath.top();
-		    resultPath.pop();
-		    cout << tmp;
-		}
+	catch (int ex) {
+		cout << "Arguments missing.\n";
+		printUsageInfo();
 	}
-
-	delete vertexStart;
-	delete vertexStop;
-	delete graf;
 
 	return 0;
 
