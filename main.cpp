@@ -13,6 +13,7 @@ using namespace std;
 #define PUSTE_POLE_PLANSZA 0
 #define STRATEGIA_WSZERZ 1
 #define STRATEGIA_W_GLAB 2
+#define STRATEGIA_W_GLAB_Z_POGLEBIANIEM 3
 
 class Stan{
 private:
@@ -141,29 +142,30 @@ public:
                 }
             }
     }
-	/*bool sprawdzRozwiazywalnosc() {
+//	bool sprawdzRozwiazywalnosc() {
+//
+//		//jezeli numer wiersza polozenia dziury jest nieparzysty to do liczbyPermutacji musimy dodac 1
+//		bool parzystoscPolozeniaDziury = ((this->pozycjaDziuryWiersz + 1) % 2) == 0;
+//		int liczbaPermutacji = parzystoscPolozeniaDziury? 0 : 1;
+//
+//		for (int wiersz = 0; wiersz < this->liczbaWierszy; wiersz++) {
+//			for (int kolumna = 0; kolumna < this->liczbaKolumn; kolumna++) {
+//				//sprawdzamy ile permutacji nalezy wykonac w kazdym wierszu aby ulozyc odpowiednio elementy
+//				for (int kolumnaPrzed = 0; kolumnaPrzed < kolumna; kolumnaPrzed++) {
+//					if (this->plansza[wiersz][kolumnaPrzed] > plansza[wiersz][kolumna] && plansza[wiersz][kolumna] != PUSTE_POLE_PLANSZA)
+//						liczbaPermutacji++;
+//				}
+//			}
+//		}
+//		cout << liczbaPermutacji << "<- liczba perm\n";
+//
+//		bool parzystoscLiczbyPermutacji = (liczbaPermutacji % 2) == 0;
+//
+//		//jesli parzystosc wykonanych permutacji jest taka sama jak parzystosc polozenia dziury
+//		// to plansza jest rozwiazywalna
+//		return (parzystoscLiczbyPermutacji == parzystoscPolozeniaDziury);
+//	}
 
-		//jezeli numer wiersza polozenia dziury jest nieparzysty to do liczbyPermutacji musimy dodac 1
-		bool parzystoscPolozeniaDziury = ((this->pozycjaDziuryWiersz + 1) % 2) == 0;
-		int liczbaPermutacji = parzystoscPolozeniaDziury? 0 : 1;
-
-		for (int wiersz = 0; wiersz < this->liczbaWierszy; wiersz++) {
-			for (int kolumna = 0; kolumna < this->liczbaKolumn; kolumna++) {
-				//sprawdzamy ile permutacji nalezy wykonac w kazdym wierszu aby ulozyc odpowiednio elementy
-				for (int kolumnaPrzed = 0; kolumnaPrzed < kolumna; kolumnaPrzed++) {
-					if (this->plansza[wiersz][kolumnaPrzed] > plansza[wiersz][kolumna] && plansza[wiersz][kolumna] != PUSTE_POLE_PLANSZA)
-						liczbaPermutacji++;
-				}
-			}
-		}
-
-		bool parzystoscLiczbyPermutacji = (liczbaPermutacji % 2) == 0;
-
-		//jesli parzystosc wykonanych permutacji jest taka sama jak parzystosc polozenia dziury
-		// to plansza jest rozwiazywalna
-		return (parzystoscLiczbyPermutacji == parzystoscPolozeniaDziury);
-	}
-	*/
     bool operator==(const Stan &stan2) {
         //przyjmujemy, ¿e plansze, które generujemy maja zawsze taki sam rozmiar
     	for (int i = 0; i < this->liczbaWierszy; i++)
@@ -201,8 +203,9 @@ private:
 
 public:
     bool visited;
-    Vertex* BFS_parent;
+    Vertex* parent;
     char* kolejnoscOperatorow;
+    int odlegloscOdPoczatku;
 
     int ordernum;
     Stan stan;
@@ -241,8 +244,9 @@ public:
 Vertex::Vertex(Stan stan, char* kolejnoscOperatorow) {
     this->stan = stan;
     this->visited = false;
-    this->BFS_parent = NULL;
+    this->parent = NULL;
     this->kolejnoscOperatorow = kolejnoscOperatorow;
+    this->odlegloscOdPoczatku = 0;
 
     for (int i = 0; i < 4; i++) {
     	if (toupper(this->kolejnoscOperatorow[i]) == 'L' ) {
@@ -341,8 +345,8 @@ Vertex* Vertex::executeOperator(int index, int wiersz, int kolumna)
 void Vertex::printout()
 {
     cout << "Wierzcholek #" << this->ordernum << "\n"<< this->stan << endl;
-    if(this->BFS_parent)
-        cout << "BFS_parent: " << this->BFS_parent << " prowadzi do #" << this->BFS_parent->ordernum << "\n";
+    if(this->parent)
+        cout << "BFS_parent: " << this->parent << " prowadzi do #" << this->parent->ordernum << "\n";
     cout << "Lista krawedzi: \n";
     for(vector<Edge*>::iterator i=edges.begin();i<edges.end();i++)
     {
@@ -355,6 +359,8 @@ class Graf
 private:
 	void BFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
 		Vertex* vertexResult;
+
+		this->addVertex(vertexStart, -1);
 
 		//kolejka wierzcholkow, dla ktorych maja byc generowane podWierzcholki z mozliwymi stanami
 		queue<Vertex*> verticesToProcessing;
@@ -388,6 +394,8 @@ private:
 
 	void DFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
 		Vertex* vertexResult;
+
+		this->addVertex(vertexStart, -1);
 
 		stack<Vertex*> tmpStack;
 		stack<Vertex*> verticesToProcessing;
@@ -429,6 +437,68 @@ private:
 		}
 	}
 
+	void IDFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
+		Vertex* vertexResult;
+
+		stack<Vertex*> tmpStack;
+		stack<Vertex*> verticesToProcessing;
+
+		int glebokosc = 1;
+
+		bool koniec = (vertexStart->stan == vertexStop->stan ? true : false);
+
+		while (!koniec) {
+
+			this->clearEdges();
+			this->vertices.clear();
+
+			verticesToProcessing.push(vertexStart);
+			this->addVertex(vertexStart, -1);
+
+			while (!verticesToProcessing.empty()) {
+				Vertex* actualVertex = verticesToProcessing.top();
+				verticesToProcessing.pop();
+
+				if (actualVertex->odlegloscOdPoczatku < glebokosc) {
+					for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
+						vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
+						if (vertexResult) {
+							int pozycja = this->addVertexWithCheck(vertexResult);
+							if (pozycja != -1) {
+								this->getVertex(pozycja)->odlegloscOdPoczatku = actualVertex->odlegloscOdPoczatku + 1;
+								this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
+
+								//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki na pomocniczy stos
+								//aby pozniej w glownym stosie miec wierzcholki ustawione w porzadku malejacych numerow
+								if (vertexResult->stan == vertexStop->stan) {
+									koniec = true;
+									break;
+								} else
+									tmpStack.push(vertexResult);
+							}
+						}
+					}
+				}
+
+				if (koniec)
+					break;
+
+				//umiesczamy na glowym stosie wierzcholki do odwiedzenia,
+				//ktore ustawione sa w porzadku malejacych numerow - zawsze zaczynamy od sasiada o najnizszym numerze
+				while (!tmpStack.empty()) {
+					verticesToProcessing.push(tmpStack.top());
+					tmpStack.pop();
+				}
+
+			}
+			if (koniec)
+				break;
+
+			//jesli kolejka jest pusta i nie znaleziono rozwiazania to zwiêkszamy glebokosc
+			glebokosc++;
+			cout <<"zwiekszono glebokosc\n";
+		}
+	}
 public:
     vector<Vertex*> vertices;
     bool isDigraph;
@@ -529,7 +599,61 @@ public:
             }
         }
     }
-	bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path) {
+	void IDFSFindVertex(Vertex* start, Vertex* end, int&pathlength, vector<int>&path)
+	{
+		stack<Vertex*> doOdwiedzenia;
+		stack<Vertex*> stackTmp;
+
+
+		int glebokosc = 1;
+		bool koniec = false;
+
+		while (!koniec) {
+
+			doOdwiedzenia.push(start);
+			this->unvisitAllVertices();
+			path.clear();
+			pathlength = 0;
+
+			while (!doOdwiedzenia.empty()) {
+				Vertex* actualVertex = doOdwiedzenia.top();
+				doOdwiedzenia.pop();
+
+				if (actualVertex->odlegloscOdPoczatku < glebokosc) {
+					for (size_t i = 0; i < actualVertex->edges.size(); i++) {
+						if (actualVertex->edges.at(i)->other_end->visited == false) {
+							actualVertex->edges.at(i)->other_end->visited = true;
+
+							stackTmp.push(actualVertex->edges.at(i)->other_end);
+
+							//zapisz parenta nastepnemu wierzcholkowi
+							actualVertex->edges.at(i)->other_end->parent = actualVertex;
+						}
+					}
+
+					while (!stackTmp.empty()) {
+						doOdwiedzenia.push(stackTmp.top());
+						stackTmp.pop();
+					}
+					path.push_back(actualVertex->ordernum);
+
+					if (actualVertex->stan == end->stan) {
+						koniec = true;
+						break;
+					} else
+						pathlength ++;
+				}
+			}
+
+			if (koniec)
+				break;
+
+			glebokosc ++;
+		}
+
+	}
+	bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path)
+	{
 		queue<Vertex*> do_odwiedzenia;
 		do_odwiedzenia.push(start);
 
@@ -552,7 +676,7 @@ public:
 					do_odwiedzenia.push(aktualny->edges.at(i)->other_end);
 
                     //zapisz parenta nastepnemu wierzcholkowi
-                    aktualny->edges.at(i)->other_end->BFS_parent = aktualny;
+                    aktualny->edges.at(i)->other_end->parent = aktualny;
 				}
 			}
 
@@ -570,7 +694,13 @@ public:
         for(size_t i=0; i<this->vertices.size(); i++)
         {
             this->vertices.at(i)->visited = false;
+            this->vertices.at(i)->parent = NULL;
         }
+    }
+    void clearEdges() {
+    	for (size_t i = 0; i < this->vertices.size(); i++) {
+    		this->vertices.at(i)->edges.clear();
+    	}
     }
 
 	void genrujStany(Vertex* vertexStart, Vertex* vertexStop, int strategiaGenerowania) {
@@ -585,6 +715,11 @@ public:
 			case STRATEGIA_W_GLAB:
 			{
 				this->DFSGenerujStany(vertexStart, vertexStop);
+				break;
+			}
+			case STRATEGIA_W_GLAB_Z_POGLEBIANIEM:
+			{
+				this->IDFSGenerujStany(vertexStart, vertexStop);
 				break;
 			}
 			}
@@ -657,7 +792,6 @@ int main(int argc, char* argv[])
 
 
 				Graf* graf = new Graf(true, 0);
-				graf->addVertex(vertexStart, -1);
 
 				switch (argToInt(argv[1])) {
 				case 0:
@@ -687,7 +821,7 @@ int main(int argc, char* argv[])
 
 						while (tmpvptr != vertexStart && tmpvptr != NULL) {
 							resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
-							tmpvptr = tmpvptr->BFS_parent;
+							tmpvptr = tmpvptr->parent;
 							liczbaruchow++;
 						}
 						cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
@@ -727,7 +861,33 @@ int main(int argc, char* argv[])
 				}
 				case 3:
 				{
-					cout << "iDFS";
+					cout << "\nIDFS\n";
+
+					graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
+					graf->printout();
+
+					int pathlength = 0;
+					vector<int> path;
+
+					graf->IDFSFindVertex(vertexStart, vertexStop, pathlength, path);
+
+					//poczawszy od konca skacz po parentach
+					Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
+					int liczbaruchow = 0;
+					stack<char> resultPath;
+
+					while (tmpvptr != vertexStart && tmpvptr != NULL) {
+						resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
+						tmpvptr = tmpvptr->parent;
+						liczbaruchow++;
+					}
+					cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
+					while (!resultPath.empty()) {
+						char tmp = resultPath.top();
+						resultPath.pop();
+						cout << tmp;
+					}
+
 					break;
 				}
 				}
