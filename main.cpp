@@ -11,7 +11,8 @@ using namespace std;
 
 //zgodnie z wymaganiami pusty kafelek ma byc oznaczany jako 0
 #define PUSTE_POLE_PLANSZA 0
-#define WSZERZ 1
+#define STRATEGIA_WSZERZ 1
+#define STRATEGIA_W_GLAB 2
 
 class Stan{
 private:
@@ -373,13 +374,58 @@ private:
 					if (pozycja != -1) {
 						this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
 						//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
-						if (vertexResult->stan == vertexStop->stan)
+						if (vertexResult->stan == vertexStop->stan) {
 							koniec = true;
+							break;
+						}
 						else
 							verticesToProcessing.push(vertexResult);
 					}
 				}
 			}
+		}
+	}
+
+	void DFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
+		Vertex* vertexResult;
+
+		stack<Vertex*> tmpStack;
+		stack<Vertex*> verticesToProcessing;
+		verticesToProcessing.push(vertexStart);
+
+		bool koniec = (vertexStart->stan == vertexStop->stan ? true : false);
+		while (!verticesToProcessing.empty() && !koniec) {
+			Vertex* actualVertex = verticesToProcessing.top();
+			verticesToProcessing.pop();
+
+			for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
+				vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
+				if (vertexResult) {
+					int pozycja = this->addVertexWithCheck(vertexResult);
+					if (pozycja != -1) {
+						this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
+
+						//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki na pomocniczy stos
+						//aby pozniej w glownym stosie miec wierzcholki ustawione w porzadku malejacych numerow
+						if (vertexResult->stan == vertexStop->stan) {
+							koniec = true;
+							break;
+						} else
+							tmpStack.push(vertexResult);
+					}
+				}
+			}
+
+			if (koniec)
+				break;
+
+			//umiesczamy na glowym stosie wierzcholki do odwiedzenia,
+			//ktore ustawione sa w porzadku malejacych numerow - zawsze zaczynamy od sasiada o najnizszym numerze
+			while (!tmpStack.empty()) {
+				verticesToProcessing.push(tmpStack.top());
+				tmpStack.pop();
+			}
+
 		}
 	}
 
@@ -531,9 +577,16 @@ public:
 
 		if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
 			switch (strategiaGenerowania) {
-			case WSZERZ:
+			case STRATEGIA_WSZERZ:
+			{
 				this->BFSGenerujStany(vertexStart, vertexStop);
 				break;
+			}
+			case STRATEGIA_W_GLAB:
+			{
+				this->DFSGenerujStany(vertexStart, vertexStop);
+				break;
+			}
 			}
 
 		}
@@ -550,7 +603,6 @@ void printUsageInfo()
 
 int argToInt(char* arg)
 {
-    //cout << "[" << arg << "]\n";
     if(strcmp(arg,"-a") == 0 || strcmp(arg,"--a") == 0)
         return 0;
     if(strcmp(arg,"-b") == 0 || strcmp(arg,"--bfs") == 0)
@@ -587,6 +639,7 @@ int main(int argc, char* argv[])
 					argv[2] = kolejnoscWzorcowa;
 				}
 
+				cout << "kolejnosc operatorow: " << argv[2] << endl;
 				Stan start;
 				//mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
 				//start.tworzPlansze(true);
@@ -614,16 +667,16 @@ int main(int argc, char* argv[])
 				}
 				case 1:
 				{
-					cout << "BFS";
+					cout << "\nBFS\n";
 
-					graf->genrujStany(vertexStart, vertexStop, WSZERZ);
+					graf->genrujStany(vertexStart, vertexStop, STRATEGIA_WSZERZ);
 
 					int pathlength = 0;
 					vector<int> path;
 
 					bool koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path);
+					graf->printout();
 
-					cout << "\n\nBFS: " << endl;
 					if (!koniec) {
 						cout << "BRAK ROZWIAZANIA" << endl;
 					} else {
@@ -649,16 +702,16 @@ int main(int argc, char* argv[])
 				}
 				case 2:
 				{
-					cout << "DFS";
+					cout << "\nDFS\n";
 
-					graf->genrujStany(vertexStart, vertexStop, WSZERZ);
+					graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB);
 
 					int pathlength = 0;
 					vector<int> path;
 
 					bool koniec = graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
+					graf->printout();
 
-					cout << "DFS: " << endl;
 					if (!koniec) {
 						cout << "BRAK ROZWIAZANIA" << endl;
 					} else {
@@ -682,14 +735,15 @@ int main(int argc, char* argv[])
 				delete vertexStart;
 				delete vertexStop;
 				delete graf;
-
 			}
 		}
 
 	}
 	catch (int ex) {
-		cout << "Arguments missing.\n";
-		printUsageInfo();
+		if (ex == ARGUMENTS_MISSING_EX) {
+			cout << "Arguments missing.\n";
+			printUsageInfo();
+		}
 	}
 
 	return 0;
