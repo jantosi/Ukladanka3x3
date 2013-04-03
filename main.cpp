@@ -141,7 +141,7 @@ public:
                 }
             }
     }
-	bool sprawdzRozwiazywalnosc() {
+	/*bool sprawdzRozwiazywalnosc() {
 
 		//jezeli numer wiersza polozenia dziury jest nieparzysty to do liczbyPermutacji musimy dodac 1
 		bool parzystoscPolozeniaDziury = ((this->pozycjaDziuryWiersz + 1) % 2) == 0;
@@ -163,7 +163,7 @@ public:
 		// to plansza jest rozwiazywalna
 		return (parzystoscLiczbyPermutacji == parzystoscPolozeniaDziury);
 	}
-
+	*/
     bool operator==(const Stan &stan2) {
         //przyjmujemy, ¿e plansze, które generujemy maja zawsze taki sam rozmiar
     	for (int i = 0; i < this->liczbaWierszy; i++)
@@ -575,7 +575,7 @@ public:
 
 	void genrujStany(Vertex* vertexStart, Vertex* vertexStop, int strategiaGenerowania) {
 
-		if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
+		//if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
 			switch (strategiaGenerowania) {
 			case STRATEGIA_WSZERZ:
 			{
@@ -589,7 +589,7 @@ public:
 			}
 			}
 
-		}
+		//}
 	}
 };
 
