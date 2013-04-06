@@ -142,29 +142,38 @@ public:
                 }
             }
     }
-//	bool sprawdzRozwiazywalnosc() {
-//
-//		//jezeli numer wiersza polozenia dziury jest nieparzysty to do liczbyPermutacji musimy dodac 1
-//		bool parzystoscPolozeniaDziury = ((this->pozycjaDziuryWiersz + 1) % 2) == 0;
-//		int liczbaPermutacji = parzystoscPolozeniaDziury? 0 : 1;
-//
-//		for (int wiersz = 0; wiersz < this->liczbaWierszy; wiersz++) {
-//			for (int kolumna = 0; kolumna < this->liczbaKolumn; kolumna++) {
-//				//sprawdzamy ile permutacji nalezy wykonac w kazdym wierszu aby ulozyc odpowiednio elementy
-//				for (int kolumnaPrzed = 0; kolumnaPrzed < kolumna; kolumnaPrzed++) {
-//					if (this->plansza[wiersz][kolumnaPrzed] > plansza[wiersz][kolumna] && plansza[wiersz][kolumna] != PUSTE_POLE_PLANSZA)
-//						liczbaPermutacji++;
-//				}
-//			}
-//		}
-//		cout << liczbaPermutacji << "<- liczba perm\n";
-//
-//		bool parzystoscLiczbyPermutacji = (liczbaPermutacji % 2) == 0;
-//
-//		//jesli parzystosc wykonanych permutacji jest taka sama jak parzystosc polozenia dziury
-//		// to plansza jest rozwiazywalna
-//		return (parzystoscLiczbyPermutacji == parzystoscPolozeniaDziury);
-//	}
+	bool sprawdzRozwiazywalnosc() {
+
+		bool parzystoscWierszaDziury = (this->pozycjaDziuryWiersz + 1) % 2 == 0;
+		bool parzystoscSzerokosciPlanszy = (this->liczbaKolumn) % 2 == 0;
+
+		//pomocnicza tablica jednowymiarowa przechpwujaca elementy planszy
+		int tmpPlansza[this->liczbaWierszy * this->liczbaKolumn];
+		for (int i = 0; i < this->liczbaWierszy; i++) {
+			for (int j = 0; j < this->liczbaKolumn; j++) {
+				tmpPlansza[j + this->liczbaWierszy * i] = this->plansza[i][j];
+			}
+		}
+
+		int rozmiar = sizeof(tmpPlansza)/sizeof(tmpPlansza[0]);
+		int liczbaInwersji = 0;
+
+		//dla kazdego puzzla(klocka) obliczamy ile jest PRZED nim klockow o mniejszym numerze nie uwzgledniajac dziury
+		for (int i = 0; i < rozmiar; i++) {
+			for (int j = i; j < rozmiar; j++) {
+				if (tmpPlansza[i] > tmpPlansza[j] && tmpPlansza[i] != PUSTE_POLE_PLANSZA && tmpPlansza[j] != PUSTE_POLE_PLANSZA) {
+					liczbaInwersji++;
+				}
+			}
+		}
+		bool parzystosLiczbyInwersji = liczbaInwersji % 2  == 0;
+
+		//jesli szerokosc ukladanki jest liczba nieparzysta to ukladanka ma rozwiazanie wtedy i tylko wtedy gdy liczba inwersji jest liczba parzysta
+
+		//jesli szerokosc ukladanki jest liczba parzysta ukladanka ma rozwiazanie wtedy i tylko wtedy gdy
+		//parzystosc liczby inwersji jest taka sama jak parzystosc numeru wiersza w ktorym jest dziura
+		return !parzystoscSzerokosciPlanszy? (parzystosLiczbyInwersji == true) : (parzystosLiczbyInwersji == parzystoscWierszaDziury);
+	}
 
     bool operator==(const Stan &stan2) {
         //przyjmujemy, ¿e plansze, które generujemy maja zawsze taki sam rozmiar
@@ -703,9 +712,10 @@ public:
     	}
     }
 
-	void genrujStany(Vertex* vertexStart, Vertex* vertexStop, int strategiaGenerowania) {
+	bool genrujStany(Vertex* vertexStart, Vertex* vertexStop, int strategiaGenerowania) {
 
-		//if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
+		if (vertexStart->stan.sprawdzRozwiazywalnosc()) {
+
 			switch (strategiaGenerowania) {
 			case STRATEGIA_WSZERZ:
 			{
@@ -724,7 +734,10 @@ public:
 			}
 			}
 
-		//}
+			return true;
+		} else
+			return false;
+
 	}
 };
 
@@ -803,17 +816,17 @@ int main(int argc, char* argv[])
 				{
 					cout << "\nBFS\n";
 
-					graf->genrujStany(vertexStart, vertexStop, STRATEGIA_WSZERZ);
+					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_WSZERZ);
 
-					int pathlength = 0;
-					vector<int> path;
-
-					bool koniec = graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path);
-					graf->printout();
-
-					if (!koniec) {
+					if (!rozwiazanie) {
 						cout << "BRAK ROZWIAZANIA" << endl;
 					} else {
+						int pathlength = 0;
+						vector<int> path;
+
+						graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path);
+						graf->printout();
+
 						//poczawszy od konca skacz po parentach
 						Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
 						int liczbaruchow = 0;
@@ -838,17 +851,17 @@ int main(int argc, char* argv[])
 				{
 					cout << "\nDFS\n";
 
-					graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB);
+					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB);
 
-					int pathlength = 0;
-					vector<int> path;
-
-					bool koniec = graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
-					graf->printout();
-
-					if (!koniec) {
+					if (!rozwiazanie) {
 						cout << "BRAK ROZWIAZANIA" << endl;
 					} else {
+
+						int pathlength = 0;
+						vector<int> path;
+
+						graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
+						graf->printout();
 
 						cout << "LICZBA RUCHOW: " << pathlength << endl;
 						for (int i = (path.size() - 1); i >= 0; i--) {
@@ -863,29 +876,33 @@ int main(int argc, char* argv[])
 				{
 					cout << "\nIDFS\n";
 
-					graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
-					graf->printout();
+					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
 
-					int pathlength = 0;
-					vector<int> path;
+					if (!rozwiazanie) {
+						cout << "BRAK ROZWIAZANIA\n";
+					} else {
+						int pathlength = 0;
+						vector<int> path;
 
-					graf->IDFSFindVertex(vertexStart, vertexStop, pathlength, path);
+						graf->IDFSFindVertex(vertexStart, vertexStop, pathlength, path);
+						graf->printout();
 
-					//poczawszy od konca skacz po parentach
-					Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
-					int liczbaruchow = 0;
-					stack<char> resultPath;
+						//poczawszy od konca skacz po parentach
+						Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
+						int liczbaruchow = 0;
+						stack<char> resultPath;
 
-					while (tmpvptr != vertexStart && tmpvptr != NULL) {
-						resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
-						tmpvptr = tmpvptr->parent;
-						liczbaruchow++;
-					}
-					cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
-					while (!resultPath.empty()) {
-						char tmp = resultPath.top();
-						resultPath.pop();
-						cout << tmp;
+						while (tmpvptr != vertexStart && tmpvptr != NULL) {
+							resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
+							tmpvptr = tmpvptr->parent;
+							liczbaruchow++;
+						}
+						cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
+						while (!resultPath.empty()) {
+							char tmp = resultPath.top();
+							resultPath.pop();
+							cout << tmp;
+						}
 					}
 
 					break;
