@@ -344,7 +344,7 @@ Vertex::~Vertex()
     }
 }
 
-Vertex* Vertex::operatorD(int wiersz, int kolumna)
+Vertex* Vertex::operatorG(int wiersz, int kolumna)
 {
     if(wiersz>= this->stan.liczbaWierszy -1) return NULL;
 
@@ -361,7 +361,7 @@ Vertex* Vertex::operatorD(int wiersz, int kolumna)
     return vertex;
 }
 
-Vertex* Vertex::operatorG(int wiersz, int kolumna)
+Vertex* Vertex::operatorD(int wiersz, int kolumna)
 {
     if(wiersz<=0) return NULL;
 
@@ -378,7 +378,7 @@ Vertex* Vertex::operatorG(int wiersz, int kolumna)
     return vertex;
 }
 
-Vertex* Vertex::operatorL(int wiersz, int kolumna)
+Vertex* Vertex::operatorP(int wiersz, int kolumna)
 {
     if(kolumna<=0) return NULL;
 
@@ -395,7 +395,7 @@ Vertex* Vertex::operatorL(int wiersz, int kolumna)
     return vertex;
 }
 
-Vertex* Vertex::operatorP(int wiersz, int kolumna)
+Vertex* Vertex::operatorL(int wiersz, int kolumna)
 {
     if(kolumna>=this->stan.liczbaKolumn-1) return NULL;
 
@@ -1006,36 +1006,38 @@ int main(int argc, char* argv[])
                 }
                 //mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
 
-              // Plansza z palca. Przydatna do debugowania
-                   start.liczbaKolumn=4;
-                   start.liczbaWierszy=4;
-                   start.tworzPlansze(true);
+               // Plansza z palca. Przydatna do debugowania
+//                   start.liczbaKolumn=4;
+//                   start.liczbaWierszy=4;
+//                   start.tworzPlansze(true);
 
-                   start.plansza[0][0]=1;
-                   start.plansza[0][1]=2;
-                   start.plansza[0][2]=3;
-                   start.plansza[0][3]=4;
+//                   start.plansza[0][0]=0;
+//                   start.plansza[0][1]=2;
+//                   start.plansza[0][2]=3;
+//                   start.plansza[0][3]=4;
 
-                   start.plansza[1][0]=5;
-                   start.plansza[1][1]=6;
-                   start.plansza[1][2]=7;
-                   start.plansza[1][3]=0;
+//                   start.plansza[1][0]=1;
+//                   start.plansza[1][1]=6;
+//                   start.plansza[1][2]=7;
+//                   start.plansza[1][3]=8;
 
-                   start.plansza[2][0]=9;
-                   start.plansza[2][1]=10;
-                   start.plansza[2][2]=11;
-                   start.plansza[2][3]=8;
+//                   start.plansza[2][0]=5;
+//                   start.plansza[2][1]=10;
+//                   start.plansza[2][2]=11;
+//                   start.plansza[2][3]=12;
 
-                   start.plansza[3][0]=13;
-                   start.plansza[3][1]=14;
-                   start.plansza[3][2]=15;
-                   start.plansza[3][3]=12;
+//                   start.plansza[3][0]=9;
+//                   start.plansza[3][1]=13;
+//                   start.plansza[3][2]=14;
+//                   start.plansza[3][3]=15;
 
-                   start.pozycjaDziuryWiersz=1;
-                   start.pozycjaDziuryKolumna=3;
-                   cout<<"Plansza z palca"<<endl;
+//                   start.pozycjaDziuryWiersz=0;
+//                   start.pozycjaDziuryKolumna=0;
+//                   cout<<"Plansza z palca"<<endl;
 
-                   start.wypiszPlansze();
+                 //  start.wypiszPlansze();
+                //Plansza ze standardowego wejœcia
+                start.wczytajPlansze();
                 //Plansza ze standardowego wejœcia
               //  start.wczytajPlansze();
 
