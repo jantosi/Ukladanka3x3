@@ -6,6 +6,7 @@
 #include <queue>
 #include <stack>
 #include <string.h>
+#include <time.h>
 
 using namespace std;
 
@@ -14,7 +15,11 @@ using namespace std;
 #define STRATEGIA_WSZERZ 1
 #define STRATEGIA_W_GLAB 2
 #define STRATEGIA_W_GLAB_Z_POGLEBIANIEM 3
-#define DEBUG_MODE true
+#define DEBUG_MODE false
+
+//timeout w milisekundach
+#define TIMEOUT 60
+#define TIMEOUT_EXCEPTION 1111
 
 class ParametryWykonania {
 public:
@@ -46,7 +51,6 @@ public:
         for (size_t i = 0; i < this->ruchyRozwiazujace.size(); i++) {
             cout << this->ruchyRozwiazujace.at(i);
         }
-        cout<<endl;
     }
 
 };
@@ -438,6 +442,8 @@ class Graf
 {
 private:
     void BFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
+        time_t czasRozpoczecia;
+		time(&czasRozpoczecia);
         Vertex* vertexResult;
 
         this->addVertex(vertexStart, -1);
@@ -470,11 +476,17 @@ private:
                     }
                 }
             }
-        }
+
+		if (this->checkTimeout(czasRozpoczecia))
+				throw TIMEOUT_EXCEPTION;
+		}
     }
 
     void DFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
-        Vertex* vertexResult;
+		time_t czasRozpoczecia;
+		time(&czasRozpoczecia);
+
+	   Vertex* vertexResult;
 
         this->addVertex(vertexStart, -1);
 
@@ -516,11 +528,17 @@ private:
                 tmpStack.pop();
             }
 
+			if (this->checkTimeout(czasRozpoczecia))
+				throw TIMEOUT_EXCEPTION;
+
         }
     }
 
     void IDFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
-        Vertex* vertexResult;
+       time_t czasRozpoczecia;
+		time(&czasRozpoczecia);
+
+	   Vertex* vertexResult;
 
         stack<Vertex*> tmpStack;
         stack<Vertex*> verticesToProcessing;
@@ -581,6 +599,9 @@ private:
             //jesli kolejka jest pusta i nie znaleziono rozwiazania to zwiêkszamy glebokosc
             glebokosc++;
             //cout <<"zwiekszono glebokosc\n";
+
+			if (this->checkTimeout(czasRozpoczecia))
+				throw TIMEOUT_EXCEPTION;
         }
     }
 public:
@@ -666,6 +687,17 @@ public:
         }
 
         return maxGlebokosc;
+    }
+
+	 bool checkTimeout(time_t czasRozpoczecia) {
+    	time_t czasSprawdzania;
+    	time(&czasSprawdzania);
+
+    	double roznica = czasSprawdzania - czasRozpoczecia;
+
+
+    	return roznica > TIMEOUT? 1 : 0;
+
     }
 
     bool DFSFindVertex(Vertex* start, Vertex* end, ParametryWykonania* parametryWykonania)
@@ -773,6 +805,9 @@ public:
         }
     }
     bool ASTARfindVertex(Vertex* start, Vertex* end, ParametryWykonania* parametryWykonania,int heuristicId){
+		time_t czasRozpoczecia;
+		time(&czasRozpoczecia);
+
         vector<Vertex*> doOdwiedzenia;
         vector<Vertex*> zostawione;
         this->unvisitAllVertices();
@@ -780,43 +815,47 @@ public:
         vector <Vertex*> path;
 
         doOdwiedzenia.push_back(start);
-        start->doOdwiedzenia=true;
+        start->doOdwiedzenia = true;
+
         while( !doOdwiedzenia.empty() ){
             //wybranie do odwiedzenia z najmniejsz¹ F
-            Vertex* actualVertex =doOdwiedzenia.at(0);
-            int actualIndex=0;
-            for (size_t i =0; i<doOdwiedzenia.size();i++){
+            Vertex* actualVertex = doOdwiedzenia.at(0);
+            int actualIndex = 0;
+            for (size_t i = 0; i< doOdwiedzenia.size(); i++){
                 if ( doOdwiedzenia.at(i)->getF() < actualVertex->getF() ){
-                    actualVertex=doOdwiedzenia.at(i);
-                    actualIndex=i;
+                    actualVertex = doOdwiedzenia.at(i);
+                    actualIndex = i;
                 }
             }
             parametryWykonania->liczbaOdwiedzonychStanow++;
             parametryWykonania->liczbaPrzetworzonychStanow++;
 
             //usuwam z doOdwiedzenia
-            actualVertex->doOdwiedzenia=false;
-            doOdwiedzenia.erase(doOdwiedzenia.begin()+actualIndex);
+            actualVertex->doOdwiedzenia = false;
+            doOdwiedzenia.erase(doOdwiedzenia.begin() + actualIndex);
+
             // dodaje do odwiedzonych
-            actualVertex->visited=true;
+            actualVertex->visited = true;
             zostawione.push_back(actualVertex);
+
             //sprawdzam czy koniec
             if( actualVertex->stan == end->stan ){
                 doOdwiedzenia.push_back(actualVertex);
                 path.push_back(actualVertex);
                 Vertex* tmp=actualVertex->parent;
                 while (tmp){
-
                     path.push_back(tmp);
-                    tmp=tmp->parent;
+                    tmp = tmp->parent;
                 }
                 //odwracam kolejnosc
                 reverse(path.begin(),path.end());
                 // usuwam ze œcie¿ki wêze³ pocz¹tkowy
                 path.erase(path.begin());
+
                 //dodaje do parametrów wykonania
-                parametryWykonania->dlugoscRozwiazania=path.size();
+                parametryWykonania->dlugoscRozwiazania = path.size();
                 parametryWykonania->glebokoscRozwiazania = actualVertex->odlegloscOdPoczatku;
+
                 for(size_t i = 0; i < path.size(); i++){
                     parametryWykonania->wierzcholkiOdwiedzone.push_back( path.at(i)->ordernum);
                     parametryWykonania->ruchyRozwiazujace.push_back( path.at(i)->stan.kierunekPrzemieszczeniaKlocka);
@@ -833,6 +872,7 @@ public:
                     nextVertex->doOdwiedzenia=true;
                     doOdwiedzenia.push_back(nextVertex);
                     nextVertex->parent=actualVertex;
+
                     //obliczanie G,H,F sasiada
                     nextVertex->odlegloscOdPoczatku=actualVertex->odlegloscOdPoczatku+1;
                     if (heuristicId == 1){
@@ -850,7 +890,12 @@ public:
                     }
                 }
             }
-        }
+
+			if (this->checkTimeout(czasRozpoczecia))
+				throw TIMEOUT_EXCEPTION;
+
+
+		}
 
         return false;
         // je¿eli jesteœmy tutaj to nie ma drogi
@@ -1001,15 +1046,12 @@ int main(int argc, char* argv[])
 
                 Stan start;
 
-                if (DEBUG_MODE){
-                    cout << "Podaj stan poczatkowy: "<<endl;
-                }
                 //mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
-
-               // Plansza z palca. Przydatna do debugowania
+                //start.tworzPlansze(true);
+               // Plansza z palca. Przydatna do debugowania w QT
 //                   start.liczbaKolumn=4;
 //                   start.liczbaWierszy=4;
-//                   start.tworzPlansze(true);
+//
 
 //                   start.plansza[0][0]=0;
 //                   start.plansza[0][1]=2;
@@ -1033,13 +1075,9 @@ int main(int argc, char* argv[])
 
 //                   start.pozycjaDziuryWiersz=0;
 //                   start.pozycjaDziuryKolumna=0;
-//                   cout<<"Plansza z palca"<<endl;
 
-                 //  start.wypiszPlansze();
                 //Plansza ze standardowego wejœcia
                 start.wczytajPlansze();
-                //Plansza ze standardowego wejœcia
-              //  start.wczytajPlansze();
 
                 //w argv[2] znajduje siê porz¹dek przeszukiwania podany przez uzytkownika
                 // chyba ¿e jest A* wtedy jet tam numer strategii
@@ -1058,50 +1096,44 @@ int main(int argc, char* argv[])
 
                 Vertex* vertexStop = new Vertex(stop, argv[2]);
 
-
                 Graf* graf = new Graf(true, 0);
 
                 switch (argToInt(argv[1])) {
                 case 0:
                     {
-                        if (DEBUG_MODE)
-                            cout << "A*"<<endl;
-
                         int id_strategii;
                         if (strcmp(argv[2],"1") == 0){
-                            id_strategii=1;
+                            id_strategii = 1;
                         } else if(strcmp(argv[2],"2") == 0){
-                            id_strategii=2;
-                        }
-                        else{
-                            id_strategii=3;
+                            id_strategii = 2;
+                        } else{
+                            id_strategii = 3;
                         }
 
-                        bool rozwiazywalne= graf->genrujStany(vertexStart, vertexStop,id_strategii);
+                        bool rozwiazywalne = graf->genrujStany(vertexStart, vertexStop,id_strategii);
                         if (rozwiazywalne){
 
                             int id_heurystyki;
                             if (strcmp(argv[3],"1") == 0){
-                                id_heurystyki=1;
+                                id_heurystyki = 1;
+                            }  else{
+                                id_heurystyki = 2;
                             }
-                            else{
-                                id_heurystyki=2;
-                            }
-                            ParametryWykonania* parametryWykonania = new ParametryWykonania();
-                            bool found=graf->ASTARfindVertex(vertexStart,vertexStop,parametryWykonania,id_heurystyki);
+                            ParametryWykonania * parametryWykonania = new ParametryWykonania();
+                            bool found = graf->ASTARfindVertex(vertexStart,vertexStop,parametryWykonania,id_heurystyki);
+
                             if (found){
                                 if (DEBUG_MODE){
                                     parametryWykonania->printout();
                                 }
                                 parametryWykonania->printRozwiazanie();
+                            } else{
+                                cout<<"-1\n";
                             }
-                            else{
-                                cout<<"-1"<<endl;
-                            }
+                        } else{
+                            cout<<"-1\n";
                         }
-                        else{
-                            cout<<"-1"<<endl;
-                        }
+
                         break;
                     }
                 case 1:
@@ -1143,16 +1175,17 @@ int main(int argc, char* argv[])
                             parametryWykonania->glebokoscRozwiazania = graf->getVertex(stop)->odlegloscOdPoczatku;
                             //graf->printout();
 
-                            //ruchy rozwiazujace sa zapisane w odwrotnej kolejnosci - rekurencja
-                            //trzeba je przepisac w odpowiedniej kolejnosci
-                            stack <char> stackTmp;
-                            for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
-                                stackTmp.push(parametryWykonania->ruchyRozwiazujace.at(i));
-                            }
-                            for (size_t i = 0; i < stackTmp.size(); i++) {
-                                parametryWykonania->ruchyRozwiazujace.at(i) = stackTmp.top();
-                                stackTmp.pop();
-                            }
+						//ruchy rozwiazujace sa zapisane w odwrotnej kolejnosci - rekurencja
+						//trzeba je przepisac w odpowiedniej kolejnosci
+						stack <char> stackTmp;
+						for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+							stackTmp.push(parametryWykonania->ruchyRozwiazujace.at(i));
+						}
+						parametryWykonania->ruchyRozwiazujace.clear();
+						while(!stackTmp.empty()) {
+							parametryWykonania->ruchyRozwiazujace.push_back(stackTmp.top());
+							stackTmp.pop();
+						}
 
                             if (DEBUG_MODE)
                                 parametryWykonania->printout();
@@ -1199,10 +1232,10 @@ int main(int argc, char* argv[])
         if (ex == ARGUMENTS_MISSING_EX) {
             cout << "Arguments missing.\n";
             printUsageInfo();
-        }
+        } else if (ex == TIMEOUT_EXCEPTION) {
+			cout << "TIMEOUT EXCEPTION";
+		}
     }
-
-    system("pause");
     return 0;
 
 }
