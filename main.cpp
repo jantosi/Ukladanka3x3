@@ -14,6 +14,41 @@ using namespace std;
 #define STRATEGIA_WSZERZ 1
 #define STRATEGIA_W_GLAB 2
 #define STRATEGIA_W_GLAB_Z_POGLEBIANIEM 3
+#define DEBUG_MODE false
+
+class ParametryWykonania {
+public:
+	int liczbaPrzetworzonychStanow;
+	int liczbaOdwiedzonychStanow;
+	int maxGlebokoscGrafu;
+	int glebokoscRozwiazania;
+	int dlugoscRozwiazania;
+	vector <char> ruchyRozwiazujace;
+	vector <int> wierzcholkiOdwiedzone;
+
+	ParametryWykonania() {
+		this->liczbaPrzetworzonychStanow = 0;
+		this->liczbaOdwiedzonychStanow = 0;
+		this->maxGlebokoscGrafu = 0;
+		this->glebokoscRozwiazania = 0;
+		this->dlugoscRozwiazania = 0;
+	}
+
+	void printout() {
+		cout << "liczba przetworzonych stanow: [" << liczbaPrzetworzonychStanow << "]\n";
+		cout << "liczba odwiedzonych stanow: [" << liczbaOdwiedzonychStanow << "]\n";
+		cout << "maksymalna glebokosc grafu: [" << maxGlebokoscGrafu << "]\n";
+		cout << "glebokosc, na ktorej znajduje sie rozwiazanie: [" << glebokoscRozwiazania << "]\n";
+	}
+
+	void printRozwiazanie() {
+		cout << this->dlugoscRozwiazania << "\n";
+		for (size_t i = 0; i < this->ruchyRozwiazujace.size(); i++) {
+			cout << this->ruchyRozwiazujace.at(i);
+		}
+	}
+
+};
 
 class Stan{
 private:
@@ -354,8 +389,9 @@ Vertex* Vertex::executeOperator(int index, int wiersz, int kolumna)
 void Vertex::printout()
 {
     cout << "Wierzcholek #" << this->ordernum << "\n"<< this->stan << endl;
+    cout << "Odleglosc od poczatku: " << this->odlegloscOdPoczatku << endl;
     if(this->parent)
-        cout << "BFS_parent: " << this->parent << " prowadzi do #" << this->parent->ordernum << "\n";
+        cout << "parent: " << this->parent << " prowadzi do #" << this->parent->ordernum << "\n";
     cout << "Lista krawedzi: \n";
     for(vector<Edge*>::iterator i=edges.begin();i<edges.end();i++)
     {
@@ -387,6 +423,7 @@ private:
 				if (vertexResult) {
 					int pozycja = this->addVertexWithCheck(vertexResult);
 					if (pozycja != -1) {
+						this->getVertex(pozycja)->odlegloscOdPoczatku = actualVertex->odlegloscOdPoczatku + 1;
 						this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
 						//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki do kolejki
 						if (vertexResult->stan == vertexStop->stan) {
@@ -420,6 +457,7 @@ private:
 				if (vertexResult) {
 					int pozycja = this->addVertexWithCheck(vertexResult);
 					if (pozycja != -1) {
+						this->getVertex(pozycja)->odlegloscOdPoczatku = actualVertex->odlegloscOdPoczatku + 1;
 						this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
 
 						//jesli generowanie ma isc glebiej to dodajemy kolejne wierzcholki na pomocniczy stos
@@ -455,6 +493,8 @@ private:
 		int glebokosc = 1;
 
 		bool koniec = (vertexStart->stan == vertexStop->stan ? true : false);
+		if (koniec)
+			this->addVertex(vertexStart, -1);
 
 		while (!koniec) {
 
@@ -505,7 +545,7 @@ private:
 
 			//jesli kolejka jest pusta i nie znaleziono rozwiazania to zwiêkszamy glebokosc
 			glebokosc++;
-			cout <<"zwiekszono glebokosc\n";
+			//cout <<"zwiekszono glebokosc\n";
 		}
 	}
 public:
@@ -583,46 +623,63 @@ public:
 
     }
 
-    bool DFSFindVertex(Vertex* start, Vertex* end, int&pathlength, vector<int>&path)
+    int getMaxGlebokosc() {
+    	int maxGlebokosc = 0;
+    	for (size_t i = 0; i < this->vertices.size(); i++) {
+    		if (vertices.at(i)->odlegloscOdPoczatku > maxGlebokosc)
+    			maxGlebokosc = vertices.at(i)->odlegloscOdPoczatku;
+    	}
+
+    	return maxGlebokosc;
+    }
+
+    bool DFSFindVertex(Vertex* start, Vertex* end, ParametryWykonania* parametryWykonania)
     {
-        start->visited = true;
+    	parametryWykonania->liczbaPrzetworzonychStanow++;
+    	start->visited = true;
 
         if(start->stan == end->stan)
         {
-            pathlength = 0;
+        	parametryWykonania->dlugoscRozwiazania = 0;
             return true;
         }
 
         for(size_t i=0; i<start->edges.size(); i++) //foreach edge
         {
             Vertex* current = start->edges.at(i)->other_end;
+
             if(!current->visited)
             {
-                bool found = DFSFindVertex(current, end, pathlength,path);
+                parametryWykonania->liczbaOdwiedzonychStanow++;
+            	parametryWykonania->wierzcholkiOdwiedzone.push_back(current->ordernum);
+
+                bool found = DFSFindVertex(current, end, parametryWykonania);
                 if(found)
                 {
-                    pathlength++;
-                    path.push_back(current->ordernum);
+                	parametryWykonania->dlugoscRozwiazania++;
+                    parametryWykonania->ruchyRozwiazujace.push_back(current->stan.kierunekPrzemieszczeniaDziury);
                     return found;
                 }
             }
         }
     }
-	void IDFSFindVertex(Vertex* start, Vertex* end, int&pathlength, vector<int>&path)
+	void IDFSFindVertex(Vertex* start, Vertex* end, ParametryWykonania* parametryWykonania)
 	{
 		stack<Vertex*> doOdwiedzenia;
 		stack<Vertex*> stackTmp;
 
-
+		parametryWykonania->liczbaOdwiedzonychStanow = 0;
+		parametryWykonania->liczbaPrzetworzonychStanow = 1;
 		int glebokosc = 1;
+
 		bool koniec = false;
 
 		while (!koniec) {
 
 			doOdwiedzenia.push(start);
 			this->unvisitAllVertices();
-			path.clear();
-			pathlength = 0;
+			parametryWykonania->wierzcholkiOdwiedzone.clear();
+			parametryWykonania->liczbaOdwiedzonychStanow = 0;
 
 			while (!doOdwiedzenia.empty()) {
 				Vertex* actualVertex = doOdwiedzenia.top();
@@ -630,6 +687,7 @@ public:
 
 				if (actualVertex->odlegloscOdPoczatku < glebokosc) {
 					for (size_t i = 0; i < actualVertex->edges.size(); i++) {
+						parametryWykonania->liczbaPrzetworzonychStanow++;
 						if (actualVertex->edges.at(i)->other_end->visited == false) {
 							actualVertex->edges.at(i)->other_end->visited = true;
 
@@ -644,13 +702,14 @@ public:
 						doOdwiedzenia.push(stackTmp.top());
 						stackTmp.pop();
 					}
-					path.push_back(actualVertex->ordernum);
+
+					parametryWykonania->wierzcholkiOdwiedzone.push_back(actualVertex->ordernum);
+					parametryWykonania->liczbaOdwiedzonychStanow++;
 
 					if (actualVertex->stan == end->stan) {
 						koniec = true;
 						break;
-					} else
-						pathlength ++;
+					}
 				}
 			}
 
@@ -659,41 +718,75 @@ public:
 
 			glebokosc ++;
 		}
+		parametryWykonania->maxGlebokoscGrafu = this->getMaxGlebokosc();
+		parametryWykonania->glebokoscRozwiazania = this->getVertex(end->stan)->odlegloscOdPoczatku;
 
+
+		//zapisanie ruchow rozwiazujacych
+		//zaczynajac od konca przechodzimy po rodzicach danego wierzcholka
+		Vertex* tmpvptr = this->getVertex(end->stan);
+		stack<char> resultPathTmp;
+		while (tmpvptr != start && tmpvptr != NULL) {
+			resultPathTmp.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
+			tmpvptr = tmpvptr->parent;
+			parametryWykonania->dlugoscRozwiazania++;
+		}
+		while (!resultPathTmp.empty()) {
+			char tmp = resultPathTmp.top();
+			resultPathTmp.pop();
+			parametryWykonania->ruchyRozwiazujace.push_back(tmp);
+		}
 	}
-	bool BFSFindVertex(Vertex* start, Vertex* end, int &pathlength, vector<int>&path)
+	bool BFSFindVertex(Vertex* start, Vertex* end, ParametryWykonania* parametryWykonania)
 	{
 		queue<Vertex*> do_odwiedzenia;
 		do_odwiedzenia.push(start);
 
 		//path.push_back(start->ordernum);
 		bool koniec = false;
-		pathlength = 0;
+		parametryWykonania->liczbaOdwiedzonychStanow = 0;
+		parametryWykonania->liczbaPrzetworzonychStanow = 1;
 
 		while (!do_odwiedzenia.empty() && !koniec) {
 			Vertex* aktualny;
 			aktualny = do_odwiedzenia.front();
 			do_odwiedzenia.pop();
 
-			sort(aktualny->edges.begin(), aktualny->edges.end());
-
-			path.push_back(aktualny->ordernum);
-
 			for (size_t i = 0; i < aktualny->edges.size(); i++) {
+				parametryWykonania->liczbaPrzetworzonychStanow++;
 				if (aktualny->edges.at(i)->other_end->visited == false) {
 					aktualny->edges.at(i)->other_end->visited = true;
+
 					do_odwiedzenia.push(aktualny->edges.at(i)->other_end);
 
                     //zapisz parenta nastepnemu wierzcholkowi
                     aktualny->edges.at(i)->other_end->parent = aktualny;
 				}
 			}
+			parametryWykonania->wierzcholkiOdwiedzone.push_back(aktualny->ordernum);
+			parametryWykonania->liczbaOdwiedzonychStanow++;
 
 			if (aktualny->stan == end->stan) {
 				koniec = true;
-			} else
-				pathlength++;
+			}
+		}
 
+		parametryWykonania->maxGlebokoscGrafu = this->getMaxGlebokosc();
+		parametryWykonania->glebokoscRozwiazania = this->getVertex(end->stan)->odlegloscOdPoczatku;
+
+		//zapisanie ruchow rozwiazujacych
+		//zaczynajac od konca przechodzimy po rodzicach danego wierzcholka
+		Vertex* tmpvptr = this->getVertex(end->stan);
+		stack<char> resultPathTmp;
+		while (tmpvptr != start && tmpvptr != NULL) {
+			resultPathTmp.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
+			tmpvptr = tmpvptr->parent;
+			parametryWykonania->dlugoscRozwiazania++;
+		}
+		while (!resultPathTmp.empty()) {
+			char tmp = resultPathTmp.top();
+			resultPathTmp.pop();
+			parametryWykonania->ruchyRozwiazujace.push_back(tmp);
 		}
 
 		return koniec;
@@ -786,8 +879,9 @@ int main(int argc, char* argv[])
 
 					argv[2] = kolejnoscWzorcowa;
 				}
+				if (DEBUG_MODE)
+					cout << "kolejnosc operatorow: " << argv[2] << endl;
 
-				cout << "kolejnosc operatorow: " << argv[2] << endl;
 				Stan start;
 				//mozna wygenerowac sobie losowa plansze tylko nalezy najpierw ustawic rozmiar planszy
 				//start.tworzPlansze(true);
@@ -814,95 +908,82 @@ int main(int argc, char* argv[])
 				}
 				case 1:
 				{
-					cout << "\nBFS\n";
-
 					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_WSZERZ);
 
 					if (!rozwiazanie) {
-						cout << "BRAK ROZWIAZANIA" << endl;
+						cout << "-1\n";
 					} else {
-						int pathlength = 0;
-						vector<int> path;
+						ParametryWykonania* parametryWykonania = new ParametryWykonania();
 
-						graf->BFSFindVertex(vertexStart, vertexStop, pathlength, path);
-						graf->printout();
+						graf->BFSFindVertex(vertexStart, vertexStop, parametryWykonania);
+						//graf->printout();
 
-						//poczawszy od konca skacz po parentach
-						Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
-						int liczbaruchow = 0;
-						stack<char> resultPath;
+						if (DEBUG_MODE)
+							parametryWykonania->printout();
 
-						while (tmpvptr != vertexStart && tmpvptr != NULL) {
-							resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
-							tmpvptr = tmpvptr->parent;
-							liczbaruchow++;
-						}
-						cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
-						while (!resultPath.empty()) {
-							char tmp = resultPath.top();
-							resultPath.pop();
-							cout << tmp;
-						}
+						parametryWykonania->printRozwiazanie();
+
+						delete parametryWykonania;
 					}
 
 					break;
 				}
 				case 2:
 				{
-					cout << "\nDFS\n";
-
 					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB);
 
 					if (!rozwiazanie) {
-						cout << "BRAK ROZWIAZANIA" << endl;
+						cout << "-1\n";
 					} else {
+						ParametryWykonania* parametryWykonania = new ParametryWykonania();
 
-						int pathlength = 0;
-						vector<int> path;
+						parametryWykonania->wierzcholkiOdwiedzone.push_back(vertexStart->ordernum);
 
-						graf->DFSFindVertex(vertexStart, vertexStop, pathlength, path);
-						graf->printout();
+						graf->DFSFindVertex(vertexStart, vertexStop, parametryWykonania);
 
-						cout << "LICZBA RUCHOW: " << pathlength << endl;
-						for (int i = (path.size() - 1); i >= 0; i--) {
-							Stan tmp = graf->getVertex(path.at(i))->stan;
-							cout << tmp.kierunekPrzemieszczeniaDziury;
+						parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
+						parametryWykonania->glebokoscRozwiazania = graf->getVertex(stop)->odlegloscOdPoczatku;
+						//graf->printout();
+
+						//ruchy rozwiazujace sa zapisane w odwrotnej kolejnosci - rekurencja
+						//trzeba je przepisac w odpowiedniej kolejnosci
+						stack <char> stackTmp;
+						for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+							stackTmp.push(parametryWykonania->ruchyRozwiazujace.at(i));
 						}
+						for (size_t i = 0; i < stackTmp.size(); i++) {
+							parametryWykonania->ruchyRozwiazujace.at(i) = stackTmp.top();
+							stackTmp.pop();
+						}
+
+						if (DEBUG_MODE)
+							parametryWykonania->printout();
+
+						parametryWykonania->printRozwiazanie();
+
+						delete parametryWykonania;
 					}
 
 					break;
 				}
 				case 3:
 				{
-					cout << "\nIDFS\n";
-
 					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
 
 					if (!rozwiazanie) {
-						cout << "BRAK ROZWIAZANIA\n";
+						cout << "-1\n";
 					} else {
-						int pathlength = 0;
-						vector<int> path;
+						ParametryWykonania* parametryWykonania = new ParametryWykonania();
 
-						graf->IDFSFindVertex(vertexStart, vertexStop, pathlength, path);
-						graf->printout();
+						graf->IDFSFindVertex(vertexStart, vertexStop, parametryWykonania);
+						//graf->printout();
 
-						//poczawszy od konca skacz po parentach
-						Vertex* tmpvptr = graf->getVertex(vertexStop->stan);
-						int liczbaruchow = 0;
-						stack<char> resultPath;
+						if (DEBUG_MODE)
+							parametryWykonania->printout();
 
-						while (tmpvptr != vertexStart && tmpvptr != NULL) {
-							resultPath.push(tmpvptr->stan.kierunekPrzemieszczeniaDziury);
-							tmpvptr = tmpvptr->parent;
-							liczbaruchow++;
-						}
-						cout << "LICZBA RUCHOW: " << liczbaruchow << "\n";
-						while (!resultPath.empty()) {
-							char tmp = resultPath.top();
-							resultPath.pop();
-							cout << tmp;
-						}
+						parametryWykonania->printRozwiazanie();
+
+						delete parametryWykonania;
 					}
 
 					break;
