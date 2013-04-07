@@ -1075,22 +1075,27 @@ int main(int argc, char* argv[])
                             id_strategii=3;
                         }
 
-                        graf->genrujStany(vertexStart, vertexStop,id_strategii);
+                        bool rozwiazywalne= graf->genrujStany(vertexStart, vertexStop,id_strategii);
+                        if (rozwiazywalne){
 
-                        int id_heurystyki;
-                        if (strcmp(argv[3],"1") == 0){
-                            id_heurystyki=1;
-                        }
-                        else{
-                            id_heurystyki=2;
-                        }
-                        ParametryWykonania* parametryWykonania = new ParametryWykonania();
-                        bool found=graf->ASTARfindVertex(vertexStart,vertexStop,parametryWykonania,id_heurystyki);
-                        if (found){
-                            if (DEBUG_MODE){
-                                parametryWykonania->printout();
+                            int id_heurystyki;
+                            if (strcmp(argv[3],"1") == 0){
+                                id_heurystyki=1;
                             }
-                           parametryWykonania->printRozwiazanie();
+                            else{
+                                id_heurystyki=2;
+                            }
+                            ParametryWykonania* parametryWykonania = new ParametryWykonania();
+                            bool found=graf->ASTARfindVertex(vertexStart,vertexStop,parametryWykonania,id_heurystyki);
+                            if (found){
+                                if (DEBUG_MODE){
+                                    parametryWykonania->printout();
+                                }
+                                parametryWykonania->printRozwiazanie();
+                            }
+                            else{
+                                cout<<"-1"<<endl;
+                            }
                         }
                         else{
                             cout<<"-1"<<endl;
