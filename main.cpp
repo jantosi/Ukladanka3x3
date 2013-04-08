@@ -66,31 +66,31 @@ public:
 
     friend ostream& operator<<(ostream &wyjscie, const ParametryWykonania &parametryWykonania)
     {
-    	wyjscie << "liczba przetworzonych stanow: [" << parametryWykonania.liczbaPrzetworzonychStanow << "]\n";
-    	wyjscie << "liczba odwiedzonych stanow: [" << parametryWykonania.liczbaOdwiedzonychStanow << "]\n";
-    	wyjscie << "maksymalna glebokosc grafu: [" << parametryWykonania.maxGlebokoscGrafu << "]\n";
-    	wyjscie << "glebokosc, na ktorej znajduje sie rozwiazanie: [" << parametryWykonania.glebokoscRozwiazania << "]\n";
-    	wyjscie << "czas wykonywania: [" << parametryWykonania.czasWykonania << "] [ms]\n";
-    	wyjscie << "liczba timeoutow: [" << parametryWykonania.liczbaTimeoutow << "]\n";
+        wyjscie << "liczba przetworzonych stanow: [" << parametryWykonania.liczbaPrzetworzonychStanow << "]\n";
+        wyjscie << "liczba odwiedzonych stanow: [" << parametryWykonania.liczbaOdwiedzonychStanow << "]\n";
+        wyjscie << "maksymalna glebokosc grafu: [" << parametryWykonania.maxGlebokoscGrafu << "]\n";
+        wyjscie << "glebokosc, na ktorej znajduje sie rozwiazanie: [" << parametryWykonania.glebokoscRozwiazania << "]\n";
+        wyjscie << "czas wykonywania: [" << parametryWykonania.czasWykonania << "] [ms]\n";
+        wyjscie << "liczba timeoutow: [" << parametryWykonania.liczbaTimeoutow << "]\n";
         return wyjscie;
     }
 
     void usrednijParametry(vector<ParametryWykonania> parametryZbiorcze) {
-    	for (size_t i = 0; i < parametryZbiorcze.size(); i++) {
-    		this->liczbaPrzetworzonychStanow += parametryZbiorcze.at(i).liczbaPrzetworzonychStanow;
-    		this->liczbaOdwiedzonychStanow += parametryZbiorcze.at(i).liczbaOdwiedzonychStanow;
-    		this->maxGlebokoscGrafu += parametryZbiorcze.at(i).maxGlebokoscGrafu;
-    		this->glebokoscRozwiazania += parametryZbiorcze.at(i).glebokoscRozwiazania;
-    		this->dlugoscRozwiazania += parametryZbiorcze.at(i).dlugoscRozwiazania;
-    		this->czasWykonania += parametryZbiorcze.at(i).czasWykonania;
-    	}
+        for (size_t i = 0; i < parametryZbiorcze.size(); i++) {
+            this->liczbaPrzetworzonychStanow += parametryZbiorcze.at(i).liczbaPrzetworzonychStanow;
+            this->liczbaOdwiedzonychStanow += parametryZbiorcze.at(i).liczbaOdwiedzonychStanow;
+            this->maxGlebokoscGrafu += parametryZbiorcze.at(i).maxGlebokoscGrafu;
+            this->glebokoscRozwiazania += parametryZbiorcze.at(i).glebokoscRozwiazania;
+            this->dlugoscRozwiazania += parametryZbiorcze.at(i).dlugoscRozwiazania;
+            this->czasWykonania += parametryZbiorcze.at(i).czasWykonania;
+        }
 
-    	this->liczbaPrzetworzonychStanow /= parametryZbiorcze.size();
-    	this->liczbaOdwiedzonychStanow /= parametryZbiorcze.size();
-    	this->maxGlebokoscGrafu /= parametryZbiorcze.size();
-    	this->glebokoscRozwiazania /= parametryZbiorcze.size();
-    	this->dlugoscRozwiazania /= parametryZbiorcze.size();
-    	this->czasWykonania /= parametryZbiorcze.size();
+        this->liczbaPrzetworzonychStanow /= parametryZbiorcze.size();
+        this->liczbaOdwiedzonychStanow /= parametryZbiorcze.size();
+        this->maxGlebokoscGrafu /= parametryZbiorcze.size();
+        this->glebokoscRozwiazania /= parametryZbiorcze.size();
+        this->dlugoscRozwiazania /= parametryZbiorcze.size();
+        this->czasWykonania /= parametryZbiorcze.size();
 
     }
 };
@@ -483,7 +483,7 @@ class Graf
 private:
     void BFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
         time_t czasRozpoczecia;
-		time(&czasRozpoczecia);
+        time(&czasRozpoczecia);
         Vertex* vertexResult;
 
         this->addVertex(vertexStart, -1);
@@ -517,16 +517,16 @@ private:
                 }
             }
 
-		if (this->checkTimeout(czasRozpoczecia))
-				throw TIMEOUT_EXCEPTION;
-		}
+            if (this->checkTimeout(czasRozpoczecia))
+                throw TIMEOUT_EXCEPTION;
+        }
     }
 
     void DFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
-		time_t czasRozpoczecia;
-		time(&czasRozpoczecia);
+        time_t czasRozpoczecia;
+        time(&czasRozpoczecia);
 
-	   Vertex* vertexResult;
+        Vertex* vertexResult;
 
         this->addVertex(vertexStart, -1);
 
@@ -568,17 +568,17 @@ private:
                 tmpStack.pop();
             }
 
-			if (this->checkTimeout(czasRozpoczecia))
-				throw TIMEOUT_EXCEPTION;
+            if (this->checkTimeout(czasRozpoczecia))
+                throw TIMEOUT_EXCEPTION;
 
         }
     }
 
     void IDFSGenerujStany(Vertex* vertexStart, Vertex* vertexStop) {
-       time_t czasRozpoczecia;
-		time(&czasRozpoczecia);
+        time_t czasRozpoczecia;
+        time(&czasRozpoczecia);
 
-	   Vertex* vertexResult;
+        Vertex* vertexResult;
 
         stack<Vertex*> tmpStack;
         stack<Vertex*> verticesToProcessing;
@@ -640,8 +640,8 @@ private:
             glebokosc++;
             //cout <<"zwiekszono glebokosc\n";
 
-			if (this->checkTimeout(czasRozpoczecia))
-				throw TIMEOUT_EXCEPTION;
+            if (this->checkTimeout(czasRozpoczecia))
+                throw TIMEOUT_EXCEPTION;
         }
     }
 public:
@@ -729,72 +729,72 @@ public:
         return maxGlebokosc;
     }
 
-	 bool checkTimeout(time_t czasRozpoczecia) {
-    	time_t czasSprawdzania;
-    	time(&czasSprawdzania);
+    bool checkTimeout(time_t czasRozpoczecia) {
+        time_t czasSprawdzania;
+        time(&czasSprawdzania);
 
-    	double roznica = czasSprawdzania - czasRozpoczecia;
+        double roznica = czasSprawdzania - czasRozpoczecia;
 
 
-    	return roznica > TIMEOUT? 1 : 0;
+        return roznica > TIMEOUT? 1 : 0;
 
     }
 
-	void generujUkladanki(int liczbaRozwiazan, vector<Stan> &wygenerowaneUkladanki, Vertex* vertexStart, int liczbaUkl = -1) {
-		Vertex* vertexResult;
-		stack<Vertex*> tmpStack;
-		stack<Vertex*> verticesToProcessing;
+    void generujUkladanki(int liczbaRozwiazan, vector<Stan> &wygenerowaneUkladanki, Vertex* vertexStart, int liczbaUkl = -1) {
+        Vertex* vertexResult;
+        stack<Vertex*> tmpStack;
+        stack<Vertex*> verticesToProcessing;
 
-		verticesToProcessing.push(vertexStart);
-		this->addVertex(vertexStart, -1);
+        verticesToProcessing.push(vertexStart);
+        this->addVertex(vertexStart, -1);
 
-		while (!verticesToProcessing.empty()) {
-			Vertex* actualVertex = verticesToProcessing.top();
-			verticesToProcessing.pop();
+        while (!verticesToProcessing.empty()) {
+            Vertex* actualVertex = verticesToProcessing.top();
+            verticesToProcessing.pop();
 
-			if (liczbaUkl != -1) {
-				if (actualVertex->odlegloscOdPoczatku == liczbaRozwiazan) {
-					wygenerowaneUkladanki.push_back(actualVertex->stan);
-					if (wygenerowaneUkladanki.size() == liczbaUkl)
-						break;
-				}
-			} else {
-				if (actualVertex->odlegloscOdPoczatku == liczbaRozwiazan) {
-					wygenerowaneUkladanki.push_back(actualVertex->stan);
-				}
-			}
+            if (liczbaUkl != -1) {
+                if (actualVertex->odlegloscOdPoczatku == liczbaRozwiazan) {
+                    wygenerowaneUkladanki.push_back(actualVertex->stan);
+                    if (wygenerowaneUkladanki.size() == liczbaUkl)
+                        break;
+                }
+            } else {
+                if (actualVertex->odlegloscOdPoczatku == liczbaRozwiazan) {
+                    wygenerowaneUkladanki.push_back(actualVertex->stan);
+                }
+            }
 
-			if (actualVertex->odlegloscOdPoczatku < liczbaRozwiazan) {
-				for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
-					vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
-					if (vertexResult) {
-						int pozycja = this->addVertexWithCheck(vertexResult);
-						if (pozycja != -1) {
-							this->getVertex(pozycja)->odlegloscOdPoczatku = actualVertex->odlegloscOdPoczatku + 1;
+            if (actualVertex->odlegloscOdPoczatku < liczbaRozwiazan) {
+                for (size_t op = 0; op < actualVertex->wskOperatory.size(); op++) {
+                    vertexResult = actualVertex->executeOperator(op, actualVertex->stan.pozycjaDziuryWiersz, actualVertex->stan.pozycjaDziuryKolumna);
+                    if (vertexResult) {
+                        int pozycja = this->addVertexWithCheck(vertexResult);
+                        if (pozycja != -1) {
+                            this->getVertex(pozycja)->odlegloscOdPoczatku = actualVertex->odlegloscOdPoczatku + 1;
 
-							this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
+                            this->makeEdge(actualVertex, this->getVertex(pozycja), 0);
 
-							tmpStack.push(vertexResult);
-						}
-					}
-				}
-			}
-			//umiesczamy na glowym stosie wierzcholki do odwiedzenia,
-			//ktore ustawione sa w porzadku malejacych numerow - zawsze zaczynamy od sasiada o najnizszym numerze
-			while (!tmpStack.empty()) {
-				verticesToProcessing.push(tmpStack.top());
-				tmpStack.pop();
-			}
-		}
+                            tmpStack.push(vertexResult);
+                        }
+                    }
+                }
+            }
+            //umiesczamy na glowym stosie wierzcholki do odwiedzenia,
+            //ktore ustawione sa w porzadku malejacych numerow - zawsze zaczynamy od sasiada o najnizszym numerze
+            while (!tmpStack.empty()) {
+                verticesToProcessing.push(tmpStack.top());
+                tmpStack.pop();
+            }
+        }
 
-/*		//majac wygenerowane graf, pobieramy z grafu wierzcholki, ktorych odleglosc od rozwiazania = liczbie rozwiazan
-		for (size_t i = 0; i < this->vertices.size(); i++) {
-			if (this->vertices.at(i)->odlegloscOdPoczatku == liczbaRozwiazan) {
-				wygenerowaneUkladanki.push_back(this->vertices.at(i)->stan);
-			}
-		}*/
+        /*		//majac wygenerowane graf, pobieramy z grafu wierzcholki, ktorych odleglosc od rozwiazania = liczbie rozwiazan
+                for (size_t i = 0; i < this->vertices.size(); i++) {
+                        if (this->vertices.at(i)->odlegloscOdPoczatku == liczbaRozwiazan) {
+                                wygenerowaneUkladanki.push_back(this->vertices.at(i)->stan);
+                        }
+                }*/
 
-	}
+    }
 
 
     bool DFSFindVertex(Vertex* start, Vertex* end, ParametryWykonania* parametryWykonania)
@@ -902,8 +902,8 @@ public:
         }
     }
     bool ASTARfindVertex(Vertex* start, Vertex* end, ParametryWykonania* parametryWykonania,int heuristicId){
-		time_t czasRozpoczecia;
-		time(&czasRozpoczecia);
+        time_t czasRozpoczecia;
+        time(&czasRozpoczecia);
 
         vector<Vertex*> doOdwiedzenia;
         vector<Vertex*> zostawione;
@@ -960,7 +960,7 @@ public:
             }
 
             for (int i=0; i< actualVertex->edges.size();i++){
-            	parametryWykonania->liczbaPrzetworzonychStanow++;
+                parametryWykonania->liczbaPrzetworzonychStanow++;
                 Vertex* nextVertex= actualVertex->edges.at(i)->other_end;
                 if (nextVertex->visited){
                     continue;
@@ -971,7 +971,7 @@ public:
                     nextVertex->parent=actualVertex;
 
                     //obliczanie G,H,F sasiada
-                    nextVertex->odlegloscOdPoczatku=actualVertex->odlegloscOdPoczatku+1;
+
                     if (heuristicId == 1){
                         nextVertex->odlegloscHeurystyczna=heurystyka1(nextVertex->stan,end->stan);
                     } else if (heuristicId==2){
@@ -980,7 +980,8 @@ public:
 
                 }
                 else{
-                    int g=actualVertex->odlegloscOdPoczatku+1;
+                    int g=1+actualVertex->odlegloscOdPoczatku;
+
                     if(g<nextVertex->odlegloscOdPoczatku){
                         nextVertex->parent=actualVertex;
                         nextVertex->odlegloscOdPoczatku=g;
@@ -988,11 +989,11 @@ public:
                 }
             }
 
-			if (this->checkTimeout(czasRozpoczecia))
-				throw TIMEOUT_EXCEPTION;
+            if (this->checkTimeout(czasRozpoczecia))
+                throw TIMEOUT_EXCEPTION;
 
 
-		}
+        }
 
         return false;
         // je¿eli jesteœmy tutaj to nie ma drogi
@@ -1167,375 +1168,376 @@ int main(int argc, char* argv[])
                     vertexStart = new Vertex(start, argv[2]);
                 }
 
-				Stan stop;
-				stop.liczbaWierszy = start.liczbaWierszy;
-				stop.liczbaKolumn = start.liczbaKolumn;
-				stop.tworzPlansze(false);
+                Stan stop;
+                stop.liczbaWierszy = start.liczbaWierszy;
+                stop.liczbaKolumn = start.liczbaKolumn;
+                stop.tworzPlansze(false);
 
-				Vertex* vertexStop = new Vertex(stop, "LPGD");
+                Vertex* vertexStop = new Vertex(stop, "LPGD");
 
                 Graf* graf = new Graf(true, 0);
 
                 switch (argToInt(argv[1])) {
                 case 0:
                     {
-					int id_strategii;
-					if (strcmp(argv[2], "1") == 0) {
-						id_strategii = 1;
-					} else if (strcmp(argv[2], "2") == 0) {
-						id_strategii = 2;
-					} else {
-						id_strategii = 3;
-					}
+                        int id_strategii;
+                        if (strcmp(argv[2], "1") == 0) {
+                            id_strategii = 1;
+                        } else if (strcmp(argv[2], "2") == 0) {
+                            id_strategii = 2;
+                        } else {
+                            id_strategii = 3;
+                        }
 
-					int id_heurystyki;
-					if (strcmp(argv[3], "1") == 0) {
-						id_heurystyki = 1;
-					} else {
-						id_heurystyki = 2;
-					}
+                        int id_heurystyki;
+                        if (strcmp(argv[3], "1") == 0) {
+                            id_heurystyki = 1;
+                        } else {
+                            id_heurystyki = 2;
+                        }
 
-					ofstream outfile("wejscie.txt");
+                        ofstream outfile("wejscie.txt");
 
-					clock_t czas;
-					czas = clock();
+                        clock_t czas;
+                        czas = clock();
 
-					bool rozwiazywalne = graf->genrujStany(vertexStart, vertexStop, id_strategii);
-					if (rozwiazywalne) {
-						ParametryWykonania * parametryWykonania = new ParametryWykonania();
+                        bool rozwiazywalne = graf->genrujStany(vertexStart, vertexStop, id_strategii);
+                        if (rozwiazywalne) {
+                            ParametryWykonania * parametryWykonania = new ParametryWykonania();
 
-						bool found = graf->ASTARfindVertex(vertexStart, vertexStop, parametryWykonania, id_heurystyki);
-						parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
-						czas = clock() - czas;
-						parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
+                            bool found = graf->ASTARfindVertex(vertexStart, vertexStop, parametryWykonania, id_heurystyki);
+                            parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
+                            czas = clock() - czas;
+                            parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
 
-						if (found) {
-							if (DEBUG_MODE) {
-								parametryWykonania->printout();
-							}
-							parametryWykonania->printRozwiazanie();
+                            if (found) {
+                                if (DEBUG_MODE) {
+                                    parametryWykonania->printout();
+                                }
+                                parametryWykonania->printRozwiazanie();
 
-							for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
-								outfile << parametryWykonania->ruchyRozwiazujace.at(i);
-							}
-						} else {
-							cout << "-1\n";
-							outfile << "-1";
-						}
-					} else {
-						cout << "-1\n";
-						outfile << "-1";
-					}
+                                for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+                                    outfile << parametryWykonania->ruchyRozwiazujace.at(i);
+                                }
+                            } else {
+                                cout << "-1\n";
+                                outfile << "-1";
+                            }
+                        } else {
+                            cout << "-1\n";
+                            outfile << "-1";
+                        }
 
-					break;
-				}
+                        break;
+                    }
                 case 1:
                     {
-					clock_t czas;
-					czas = clock();
+                        clock_t czas;
+                        czas = clock();
 
-					ofstream outfile("rozwiazanie.txt");
+                        ofstream outfile("rozwiazanie.txt");
 
-					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_WSZERZ);
+                        bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_WSZERZ);
 
-					if (!rozwiazanie) {
-						cout << "-1\n";
-						outfile << "-1";
-					} else {
-						ParametryWykonania* parametryWykonania = new ParametryWykonania();
+                        if (!rozwiazanie) {
+                            cout << "-1\n";
+                            outfile << "-1";
+                        } else {
+                            ParametryWykonania* parametryWykonania = new ParametryWykonania();
 
-						graf->BFSFindVertex(vertexStart, vertexStop, parametryWykonania);
-						czas = clock() - czas;
-						parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
+                            graf->BFSFindVertex(vertexStart, vertexStop, parametryWykonania);
+                            czas = clock() - czas;
+                            parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
 
-						if (DEBUG_MODE)
-							parametryWykonania->printout();
+                            if (DEBUG_MODE)
+                                parametryWykonania->printout();
 
-						parametryWykonania->printRozwiazanie();
-						for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
-							outfile << parametryWykonania->ruchyRozwiazujace.at(i);
-						}
+                            parametryWykonania->printRozwiazanie();
+                            for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+                                outfile << parametryWykonania->ruchyRozwiazujace.at(i);
+                            }
 
-						delete parametryWykonania;
-					}
+                            delete parametryWykonania;
+                        }
 
-					break;
-				}
+                        break;
+                    }
                 case 2:
                     {
-					clock_t czas;
-					czas = clock();
+                        clock_t czas;
+                        czas = clock();
 
-					ofstream outfile("rozwiazanie.txt");
+                        ofstream outfile("rozwiazanie.txt");
 
-					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB);
+                        bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB);
 
-					if (!rozwiazanie) {
-						cout << "-1\n";
-						outfile << "-1";
-					} else {
-						ParametryWykonania* parametryWykonania = new ParametryWykonania();
+                        if (!rozwiazanie) {
+                            cout << "-1\n";
+                            outfile << "-1";
+                        } else {
+                            ParametryWykonania* parametryWykonania = new ParametryWykonania();
 
-						parametryWykonania->wierzcholkiOdwiedzone.push_back(vertexStart->ordernum);
+                            parametryWykonania->wierzcholkiOdwiedzone.push_back(vertexStart->ordernum);
 
-						graf->DFSFindVertex(vertexStart, vertexStop, parametryWykonania);
-						czas = clock() - czas;
-						parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
+                            graf->DFSFindVertex(vertexStart, vertexStop, parametryWykonania);
+                            czas = clock() - czas;
+                            parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
 
-						parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
-						parametryWykonania->glebokoscRozwiazania = graf->getVertex(stop)->odlegloscOdPoczatku;
-						//graf->printout();
+                            parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
+                            parametryWykonania->glebokoscRozwiazania = graf->getVertex(stop)->odlegloscOdPoczatku;
+                            //graf->printout();
 
-						//ruchy rozwiazujace sa zapisane w odwrotnej kolejnosci - rekurencja
-						//trzeba je przepisac w odpowiedniej kolejnosci
-						stack<char> stackTmp;
-						for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
-							stackTmp.push(parametryWykonania->ruchyRozwiazujace.at(i));
-						}
-						parametryWykonania->ruchyRozwiazujace.clear();
-						while (!stackTmp.empty()) {
-							parametryWykonania->ruchyRozwiazujace.push_back(stackTmp.top());
-							stackTmp.pop();
-						}
+                            //ruchy rozwiazujace sa zapisane w odwrotnej kolejnosci - rekurencja
+                            //trzeba je przepisac w odpowiedniej kolejnosci
+                            stack<char> stackTmp;
+                            for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+                                stackTmp.push(parametryWykonania->ruchyRozwiazujace.at(i));
+                            }
+                            parametryWykonania->ruchyRozwiazujace.clear();
+                            while (!stackTmp.empty()) {
+                                parametryWykonania->ruchyRozwiazujace.push_back(stackTmp.top());
+                                stackTmp.pop();
+                            }
 
-						if (DEBUG_MODE)
-							parametryWykonania->printout();
+                            if (DEBUG_MODE)
+                                parametryWykonania->printout();
 
-						parametryWykonania->printRozwiazanie();
-						for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
-							outfile << parametryWykonania->ruchyRozwiazujace.at(i);
-						}
+                            parametryWykonania->printRozwiazanie();
+                            for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+                                outfile << parametryWykonania->ruchyRozwiazujace.at(i);
+                            }
 
-						delete parametryWykonania;
-					}
+                            delete parametryWykonania;
+                        }
 
-					break;
-				}
+                        break;
+                    }
                 case 3:
                     {
-					clock_t czas;
-					czas = clock();
+                        clock_t czas;
+                        czas = clock();
 
-					ofstream outfile("rozwiazanie.txt");
+                        ofstream outfile("rozwiazanie.txt");
 
-					bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
+                        bool rozwiazanie = graf->genrujStany(vertexStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
 
-					if (!rozwiazanie) {
-						cout << "-1\n";
-						outfile << "-1";
-					} else {
-						ParametryWykonania* parametryWykonania = new ParametryWykonania();
+                        if (!rozwiazanie) {
+                            cout << "-1\n";
+                            outfile << "-1";
+                        } else {
+                            ParametryWykonania* parametryWykonania = new ParametryWykonania();
 
-						graf->IDFSFindVertex(vertexStart, vertexStop, parametryWykonania);
-						czas = clock() - czas;
-						parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
+                            graf->IDFSFindVertex(vertexStart, vertexStop, parametryWykonania);
+                            czas = clock() - czas;
+                            parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
 
-						if (DEBUG_MODE)
-							parametryWykonania->printout();
+                            if (DEBUG_MODE)
+                                parametryWykonania->printout();
 
-						parametryWykonania->printRozwiazanie();
-						for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
-							outfile << parametryWykonania->ruchyRozwiazujace.at(i);
-						}
+                            parametryWykonania->printRozwiazanie();
+                            for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+                                outfile << parametryWykonania->ruchyRozwiazujace.at(i);
+                            }
 
-						delete parametryWykonania;
-					}
+                            delete parametryWykonania;
+                        }
 
-					break;
-				}
+                        break;
+                    }
                 case 4:
-                {	//zbiorcze parametry dla DFS'a, BFS'a lub iDFS'a
-                	if (DEBUG_MODE)
-                		cout << "zbiorcze wyniki\n";
+                    {	//zbiorcze parametry dla DFS'a, BFS'a lub iDFS'a
+                        if (DEBUG_MODE)
+                            cout << "zbiorcze wyniki\n";
 
-                	int liczbaUkladanek;
-                	if ( argv[3]!= NULL) {
-                		stringstream ss;
-                		ss << argv[3];
-                		ss >> liczbaUkladanek;
-                	} else
-                		liczbaUkladanek = -1;
+                        int liczbaUkladanek;
+                        if ( argv[3]!= NULL) {
+                            stringstream ss;
+                            ss << argv[3];
+                            ss >> liczbaUkladanek;
+                        } else
+                            liczbaUkladanek = -1;
 
-    				Graf* generowanieZbiorcze = new Graf(true, 0);
-    				vector<Stan> wygenerowaneUkladanki;
-    				vector<ParametryWykonania> zbiorczeParametryWykonania;
-    				int odlegloscOdRozwiazania;
-    				char porzadek[] = {'D','G','L','P'};
+                        Graf* generowanieZbiorcze = new Graf(true, 0);
+                        vector<Stan> wygenerowaneUkladanki;
+                        vector<ParametryWykonania> zbiorczeParametryWykonania;
+                        int odlegloscOdRozwiazania;
+                        char porzadek[] = {'D','G','L','P'};
 
-					stringstream ss;
-					ss << argv[2];
-					ss >> odlegloscOdRozwiazania;
+                        stringstream ss;
+                        ss << argv[2];
+                        ss >> odlegloscOdRozwiazania;
 
-					generowanieZbiorcze->generujUkladanki(odlegloscOdRozwiazania, wygenerowaneUkladanki, vertexStop, liczbaUkladanek);
+                        generowanieZbiorcze->generujUkladanki(odlegloscOdRozwiazania, wygenerowaneUkladanki, vertexStop, liczbaUkladanek);
 
-                	for (int algorytm = 0; algorytm < 3; algorytm++) {
-						for (size_t ukladankaNum = 0; ukladankaNum < wygenerowaneUkladanki.size(); ukladankaNum++) {
-							int liczbaTimeoutow = 0;
-							stringstream ss;
-							ss << odlegloscOdRozwiazania;
-							string nazwa = "ukladanka" + ss.str() + ".txt";
-							ofstream outfile(nazwa.c_str(), fstream::app);
+                        for (int algorytm = 0; algorytm < 3; algorytm++) {
+                            for (size_t ukladankaNum = 0; ukladankaNum < wygenerowaneUkladanki.size(); ukladankaNum++) {
+                                int liczbaTimeoutow = 0;
+                                stringstream ss;
+                                ss << odlegloscOdRozwiazania;
+                                string nazwa = "ukladanka" + ss.str() + ".txt";
+                                ofstream outfile(nazwa.c_str(), fstream::app);
 
-							if (ukladankaNum == 0) {
-								if (algorytm == 0)
-									outfile << "\nDFS\n";
-								else if (algorytm == 1)
-									outfile << "\nBFS\n";
-								else if (algorytm == 2)
-									outfile << "\niDFS\n";
-							}
-
-
-							outfile << wygenerowaneUkladanki.at(ukladankaNum) << "\n";
-
-							do {
-								Vertex* newStart = new Vertex(wygenerowaneUkladanki.at(ukladankaNum), porzadek);
-								Graf* graf = new Graf(true, 0);
-								ParametryWykonania* parametryDoZbiorczego = new ParametryWykonania();
+                                if (ukladankaNum == 0) {
+                                    if (algorytm == 0)
+                                        outfile << "\nDFS\n";
+                                    else if (algorytm == 1)
+                                        outfile << "\nBFS\n";
+                                    else if (algorytm == 2)
+                                        outfile << "\niDFS\n";
+                                }
 
 
-								clock_t czas;
-								czas = clock();
-								try {
-									if (algorytm == 0) {
-										graf->genrujStany(newStart, vertexStop, STRATEGIA_W_GLAB);
+                                outfile << wygenerowaneUkladanki.at(ukladankaNum) << "\n";
 
-										graf->DFSFindVertex(newStart, vertexStop, parametryDoZbiorczego);
-										parametryDoZbiorczego->maxGlebokoscGrafu = graf->getMaxGlebokosc();
-										parametryDoZbiorczego->glebokoscRozwiazania = graf->getVertex(stop)->odlegloscOdPoczatku;
-									}
-									else if (algorytm == 1) {
-										graf->genrujStany(newStart, vertexStop, STRATEGIA_WSZERZ);
+                                do {
+                                    Vertex* newStart = new Vertex(wygenerowaneUkladanki.at(ukladankaNum), porzadek);
+                                    Graf* graf = new Graf(true, 0);
+                                    ParametryWykonania* parametryDoZbiorczego = new ParametryWykonania();
 
-										graf->BFSFindVertex(newStart, vertexStop, parametryDoZbiorczego);
-									}
-									else if (algorytm == 2) {
-										graf->genrujStany(newStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
 
-										graf->BFSFindVertex(newStart, vertexStop, parametryDoZbiorczego);
-									}
+                                    clock_t czas;
+                                    czas = clock();
+                                    try {
+                                        if (algorytm == 0) {
+                                            graf->genrujStany(newStart, vertexStop, STRATEGIA_W_GLAB);
 
-									czas = clock() - czas;
-									parametryDoZbiorczego->czasWykonania = (float)czas / CLOCKS_PER_SEC;
-									zbiorczeParametryWykonania.push_back(*parametryDoZbiorczego);
+                                            graf->DFSFindVertex(newStart, vertexStop, parametryDoZbiorczego);
+                                            parametryDoZbiorczego->maxGlebokoscGrafu = graf->getMaxGlebokosc();
+                                            parametryDoZbiorczego->glebokoscRozwiazania = graf->getVertex(stop)->odlegloscOdPoczatku;
+                                        }
+                                        else if (algorytm == 1) {
+                                            graf->genrujStany(newStart, vertexStop, STRATEGIA_WSZERZ);
 
-									delete graf;
-									delete newStart;
-									delete parametryDoZbiorczego;
-								} catch (int ex) {
-									liczbaTimeoutow++;
+                                            graf->BFSFindVertex(newStart, vertexStop, parametryDoZbiorczego);
+                                        }
+                                        else if (algorytm == 2) {
+                                            graf->genrujStany(newStart, vertexStop, STRATEGIA_W_GLAB_Z_POGLEBIANIEM);
 
-									delete graf;
-									delete newStart;
-									delete parametryDoZbiorczego;
-								}
+                                            graf->BFSFindVertex(newStart, vertexStop, parametryDoZbiorczego);
+                                        }
 
-							} while (next_permutation(porzadek, porzadek + 4));
+                                        czas = clock() - czas;
+                                        parametryDoZbiorczego->czasWykonania = (float)czas / CLOCKS_PER_SEC;
+                                        zbiorczeParametryWykonania.push_back(*parametryDoZbiorczego);
 
-							ParametryWykonania* usrednioneParametry = new ParametryWykonania;
-							usrednioneParametry->usrednijParametry(zbiorczeParametryWykonania);
-							usrednioneParametry->liczbaTimeoutow = liczbaTimeoutow;
+                                        delete graf;
+                                        delete newStart;
+                                        delete parametryDoZbiorczego;
+                                    } catch (int ex) {
+                                        liczbaTimeoutow++;
 
-							outfile << *usrednioneParametry;
-							outfile << "\n";
+                                        delete graf;
+                                        delete newStart;
+                                        delete parametryDoZbiorczego;
+                                    }
 
-							delete usrednioneParametry;
-							zbiorczeParametryWykonania.clear();
-						}
-					}
+                                } while (next_permutation(porzadek, porzadek + 4));
 
-                	delete generowanieZbiorcze;
+                                ParametryWykonania* usrednioneParametry = new ParametryWykonania;
+                                usrednioneParametry->usrednijParametry(zbiorczeParametryWykonania);
+                                usrednioneParametry->liczbaTimeoutow = liczbaTimeoutow;
 
-					break;
-				}
+                                outfile << *usrednioneParametry;
+                                outfile << "\n";
+
+                                delete usrednioneParametry;
+                                zbiorczeParametryWykonania.clear();
+                            }
+                        }
+
+                        delete generowanieZbiorcze;
+
+                        break;
+                    }
                 case 5: {
-					//zbiorcze dla A*
-                	if (DEBUG_MODE)
-                		cout << "A*\n";
+                        //zbiorcze dla A*
+                        if (DEBUG_MODE)
+                            cout << "A*\n";
 
-                	int liczbaUkladanek;
-					if (argv[3] != NULL) {
-						stringstream ss;
-						ss << argv[3];
-						ss >> liczbaUkladanek;
-					} else
-						liczbaUkladanek = -1;
+                        int liczbaUkladanek;
+                        if (argv[3] != NULL) {
+                            stringstream ss;
+                            ss << argv[3];
+                            ss >> liczbaUkladanek;
+                        } else
+                            liczbaUkladanek = -1;
 
-                	int odlegloscOdRozwiazania;
-                	vector<Stan> wygenerowaneUkladanki;
-                	Graf* generowanieZbiorcze = new Graf(true, 0);
+                        int odlegloscOdRozwiazania;
+                        vector<Stan> wygenerowaneUkladanki;
+                        Graf* generowanieZbiorcze = new Graf(true, 0);
 
-					stringstream ss;
-					ss << argv[2];
-					ss >> odlegloscOdRozwiazania;
+                        stringstream ss;
+                        ss << argv[2];
+                        ss >> odlegloscOdRozwiazania;
 
-					generowanieZbiorcze->generujUkladanki(odlegloscOdRozwiazania, wygenerowaneUkladanki, vertexStop, liczbaUkladanek);
+                        generowanieZbiorcze->generujUkladanki(odlegloscOdRozwiazania, wygenerowaneUkladanki, vertexStop, liczbaUkladanek);
 
-					for (int i = 0; i < wygenerowaneUkladanki.size(); i++) {
-						stringstream ss;
-						ss << odlegloscOdRozwiazania;
-						string nazwa = "ukladankaAStar" + ss.str() + ".txt";
-						ofstream outfile(nazwa.c_str(), fstream::app);
+                        for (int i = 0; i < wygenerowaneUkladanki.size(); i++) {
+                            stringstream ss;
+                            ss << odlegloscOdRozwiazania;
+                            string nazwa = "ukladankaAStar" + ss.str() + ".txt";
+                            ofstream outfile(nazwa.c_str(), fstream::app);
 
-						Vertex* newStart = new Vertex(wygenerowaneUkladanki.at(i), "LPGD");
+                            Vertex* newStart = new Vertex(wygenerowaneUkladanki.at(i), "PDLG");
 
-						outfile << "\n" << wygenerowaneUkladanki.at(i) << "\n";
-						for (int s = 1; s <= 3; s++) {
+                            outfile << "\n" << wygenerowaneUkladanki.at(i) << "\n";
+                            for (int s = 1; s <= 3; s++) {
 
-							if (s == 1) {
-								outfile << "\nStrategia wszerz\n";
-							} else if(s == 2) {
-								outfile << "\nStrategia w glab\n";
-							} else if(s == 3) {
-								outfile << "\nStrategia w glab z poglebianiem\n";
-							}
+                                if (s == 1) {
+                                    outfile << "\nStrategia wszerz\n";
+                                } else if(s == 2) {
+                                    outfile << "\nStrategia w glab\n";
+                                } else if(s == 3) {
+                                    outfile << "\nStrategia w glab z poglebianiem\n";
+                                }
 
-							Graf* graf = new Graf(true, 0);
+                                Graf* graf = new Graf(true, 0);
 
-							clock_t czas;
-							czas = clock();
-							try {
+                                clock_t czas;
+                                czas = clock();
+                                try {
 
-								graf->genrujStany(vertexStart, vertexStop, s);
-							} catch (int ex) {
+                                    graf->genrujStany(newStart, vertexStop, s);
 
-							}
-							for (int h = 1; h <= 2; h++) {
-								if (h == 1) {
-									outfile << "\nHeurystyka 1\n";
-								} else if (h == 2) {
-									outfile << "\nHeurystyka 2\n";
-								}
+                                } catch (int ex) {
 
-								ParametryWykonania * parametryWykonania = new ParametryWykonania();
-								bool found = graf->ASTARfindVertex(vertexStart, vertexStop, parametryWykonania, h);
-								parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
+                                }
+                                for (int h = 1; h <= 2; h++) {
+                                    if (h == 1) {
+                                        outfile << "\nHeurystyka 1\n";
+                                    } else if (h == 2) {
+                                        outfile << "\nHeurystyka 2\n";
+                                    }
 
-								czas = clock() - czas;
-								parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
+                                    ParametryWykonania * parametryWykonania = new ParametryWykonania();
+                                    bool found = graf->ASTARfindVertex(vertexStart, vertexStop, parametryWykonania, h);
+                                    parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
 
-								if (found) {
-									outfile << parametryWykonania->dlugoscRozwiazania << "\n";
-									for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
-										outfile << parametryWykonania->ruchyRozwiazujace.at(i);
-									}
-									outfile << endl;
-								} else {
-									outfile << "brak rozwiazania - przekroczono czas generowania grafu\n";
-								}
-								parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
+                                    czas = clock() - czas;
+                                    parametryWykonania->czasWykonania = (float)czas/CLOCKS_PER_SEC;
 
-								outfile << *parametryWykonania;
+                                    if (found) {
+                                        outfile << parametryWykonania->dlugoscRozwiazania << "\n";
+                                        for (size_t i = 0; i < parametryWykonania->ruchyRozwiazujace.size(); i++) {
+                                            outfile << parametryWykonania->ruchyRozwiazujace.at(i);
+                                        }
+                                        outfile << endl;
+                                    } else {
+                                        outfile << "brak rozwiazania - przekroczono czas generowania grafu\n";
+                                    }
+                                    parametryWykonania->maxGlebokoscGrafu = graf->getMaxGlebokosc();
 
-								delete parametryWykonania;
-							}
+                                    outfile << *parametryWykonania;
 
-							delete graf;
-						}
-					}
-					delete generowanieZbiorcze;
-					break;
-                }
+                                    delete parametryWykonania;
+                                }
+
+                                delete graf;
+                            }
+                        }
+                        delete generowanieZbiorcze;
+                        break;
+                    }
 
                 }
 
@@ -1547,15 +1549,16 @@ int main(int argc, char* argv[])
 
     }
     catch (int ex) {
-		if (DEBUG_MODE) {
-			if (ex == ARGUMENTS_MISSING_EX) {
-				cout << "Arguments missing.\n";
-				printUsageInfo();
-			} else if (ex == TIMEOUT_EXCEPTION) {
-				cout << "TIMEOUT EXCEPTION";
-			}
-		}
+        if (DEBUG_MODE) {
+            if (ex == ARGUMENTS_MISSING_EX) {
+                cout << "Arguments missing.\n";
+                printUsageInfo();
+            } else if (ex == TIMEOUT_EXCEPTION) {
+                cout << "TIMEOUT EXCEPTION";
+            }
+        }
     }
+    cout<<"done"<<endl;
     return 0;
 
 }
